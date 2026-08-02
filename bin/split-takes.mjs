@@ -47,6 +47,9 @@ function parseArgs(argv) {
     else if (k === '--head-sec') a.headSec = Number(argv[++i]);
     else if (k === '--slates') a.slates = argv[++i];
     else if (k === '--map') a.map = argv[++i];
+    else if (k === '--speech') a.speech = argv[++i];
+    else if (k === '--min-peak') a.minPeak = Number(argv[++i]); // 滤掉低于此 dBFS 的 take
+    else if (k === '--min-dur') a.minDur = Number(argv[++i]); // 滤掉短于此 ms 的 take
     else if (k === '--ng') a.ng = true;
     else throw new Error(`未知参数：${k}`);
   }
@@ -194,6 +197,28 @@ function analyze(seg, env) {
  * 录完自己把 NG 剪掉的话，这条判据纯是负担。
  * 关闭时短段一律按 take 收，attack 偏慢的在报告里标出来让人看。
  */
+/**
+ * 有语音区间时的分类（--speech）：跟语音重叠过半 = 口报，其余全是素材。
+ *
+ * 这条比 attack 判据可靠得多，而且是**持续音唯一能用的办法** ——
+ * 火焰/风/水/摩擦跟语音一样慢 attack、长、多峰，声学特征分不开
+ * （实测喷火录音 30 秒火焰被 attack 判据判成了口报）。
+ * 反过来先定位语音、剩下的都算素材，瞬态和持续音就一视同仁了。
+ */
+function classifyBySpeech(seg, spans) {
+  const s = seg.start / 1000;
+  const e = seg.end / 1000;
+  const dur = Math.max(1e-6, e - s);
+  for (let i = 0; i < spans.length; i++) {
+    const sp = spans[i];
+    const ov = Math.min(e, sp.e) - Math.max(s, sp.s);
+    // 带 spanIdx 是为了合并时去重 —— 一段口报会被换气切成多个 seg，
+    // 每个都指向同一个 span，直接累加 text 会把整段口报重复好几遍
+    if (ov > 0 && ov / dur > 0.5) return { kind: 'slate', spanIdx: i };
+  }
+  return { kind: 'take', spanIdx: null };
+}
+
 function classify(a, ngEnabled) {
   const isTake = a.attack <= TAKE_MAX_ATTACK_MS && a.dur <= TAKE_MAX_DUR_MS && a.peaks <= TAKE_MAX_PEAKS;
   if (isTake) return 'take';
@@ -214,9 +239,10 @@ function group(items) {
       // 12 段「slate」，实际只有 2 段口报。
       if (cur && cur.takes.length === 0) {
         cur.slateEnd = it.end;
+        if (it.spanIdx != null) cur.spanIdx.add(it.spanIdx);
         continue;
       }
-      cur = { slateAt: it.start, slateEnd: it.end, takes: [] };
+      cur = { slateAt: it.start, slateEnd: it.end, spanIdx: new Set(it.spanIdx != null ? [it.spanIdx] : []), takes: [] };
       groups.push(cur);
     } else if (it.kind === 'ng') {
       if (!cur || !cur.takes.length) warnings.push(`${it.start}ms 处的 NG 没有可丢弃的 take`);
@@ -291,11 +317,29 @@ function main() {
   const thOff = thOn * 0.5;
 
   const segs = segment(env, thOn, thOff);
+  const speech = args.speech ? JSON.parse(readFileSync(args.speech, 'utf8')).spans ?? [] : null;
   const items = segs.map((s) => {
     const a = analyze(s, env);
+    if (speech) {
+      const c = classifyBySpeech(s, speech);
+      return { ...s, ...a, kind: c.kind, spanIdx: c.spanIdx };
+    }
     return { ...s, ...a, kind: classify(a, args.ng) };
   });
-  const { groups, warnings } = group(items);
+  // --min-peak：滤掉说话前的呼吸、放下东西的响动这类杂音。默认不滤 ——
+  // 宁可让它们出现在报告里被看见，也不静默丢掉可能是真素材的东西。
+  // 持续音场景优先用 --min-dur：实测喷火录音里杂音和真素材的**电平完全重叠**
+  // （火 -25.0/-30.1dBFS，呼吸和放东西 -28.4/-30.3/-33.7），--min-peak 分不开；
+  // 但时长差 100 倍（火 8.9s vs 杂音 26-81ms），--min-dur 一刀切干净。
+  let filtered = 0;
+  for (const it of items) {
+    if (it.kind !== 'take') continue;
+    if ((args.minPeak != null && it.peakDb < args.minPeak) || (args.minDur != null && it.dur < args.minDur)) {
+      it.kind = 'noise';
+      filtered++;
+    }
+  }
+  const { groups, warnings } = group(items.filter((i) => i.kind !== 'noise'));
 
   // ── marker 分档 ──
   // 录的时候换档按一次 M。算法能准确切出每一下，但猜不出档位边界
@@ -350,6 +394,8 @@ function main() {
         ? entry.slate
         : '⚠ 表里没有对应条目';
     console.log(`[${String(gi + 1).padStart(2)}] ${label}  —— ${g.takes.length} 个 take  (口报 @ ${(g.slateAt / 1000).toFixed(2)}s)`);
+    const said = speech && g.spanIdx?.size ? [...g.spanIdx].map((i) => speech[i].t).join(' ').trim() : null;
+    if (said) console.log(`       「${said.slice(0, 70)}${said.length > 70 ? '…' : ''}」`);
     g.takes.forEach((t, ti) => {
       const name = mapCfg
         ? mapG
@@ -369,7 +415,10 @@ function main() {
     if (markers.length) {
       const per = new Map();
       for (const t of g.takes) per.set(t.tier, (per.get(t.tier) ?? 0) + 1);
-      const bad = [...per.entries()].filter(([, n]) => n < 2 || n > 6);
+      // 持续音（火/风/水）每档就录一条长的，别按瞬态的"每档 3-5 下"报警
+      const avgDur = g.takes.reduce((s, t) => s + t.dur, 0) / g.takes.length;
+      const sustained = avgDur > 1000;
+      const bad = sustained ? [] : [...per.entries()].filter(([, n]) => n < 2 || n > 6);
       if (bad.length) console.log(`       ⚠ 档 ${bad.map(([k, n]) => `${k}(${n}个)`).join(' ')} 数量异常`);
     } else if (g.takes.length < 3 || g.takes.length > 6) {
       console.log(`       ⚠ 数量异常（期望 3-5 个）`);

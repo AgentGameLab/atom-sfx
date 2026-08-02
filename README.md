@@ -24,7 +24,19 @@ record one long take        →   split-takes   →   mix-layers   →   game
 
 **You record the way a foley artist actually works**: pick something up, say what it is and how you're about to hit it, then hit it. Hit `M` when you change intensity. Keep going.
 
-**The splitter figures out the rest.** Speech and percussive transients differ by an order of magnitude in attack steepness (30–80ms vs <5ms), so it separates your narration from your takes without ASR. Markers in the wav's `cue` chunk define the intensity tiers. Everything gets named from that.
+**The splitter figures out the rest.** Markers in the wav's `cue` chunk define the tiers; everything gets named from that.
+
+Separating your narration from your takes works two ways:
+
+- **Transients** (impacts, taps, clacks) — free. Speech and percussive onsets differ by an order of magnitude in attack steepness (30–80ms vs <5ms), no ASR needed.
+- **Sustained sources** (fire, wind, water, scraping) — needs `--speech`. A flame is slow-attack, long, multi-peak — acoustically indistinguishable from talking. So invert it: locate the *speech* with word-level ASR timestamps, and everything else is material.
+
+```bash
+python tools/transcribe.py take.wav -o speech.json
+atom-split --input take.wav --speech speech.json --min-dur 2000 --dry-run
+```
+
+Word-level timestamps are required — segment-level ones fold "talk … 30s of fire … talk" into one span.
 
 No shot list. No recording script. You don't decide what a sound is *for* until after you've heard it.
 
