@@ -29,7 +29,7 @@ const TARGET_PEAK_DB = -3; // 族内最响的那个对齐到这里
 const MP3_BITRATE = '192k'; // §7A 说 128-192 够用，源侧取上限
 
 function parseArgs(argv) {
-  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: -3, bodyDelay: 4, defId: 'piece-move', dryRun: false };
+  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: -3, bodyDelay: 4, defId: 'sfx', dryRun: false, family: null, contact: null, body: null };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
     if (k === '--mode') a.mode = argv[++i];
@@ -38,6 +38,9 @@ function parseArgs(argv) {
     else if (k === '--body-gain') a.bodyGain = Number(argv[++i]);
     else if (k === '--body-delay') a.bodyDelay = Number(argv[++i]);
     else if (k === '--def-id') a.defId = argv[++i];
+    else if (k === '--family') a.family = argv[++i]; // direct 模式用哪个 source
+    else if (k === '--contact') a.contact = argv[++i]; // layered 的瞬态层
+    else if (k === '--body') a.body = argv[++i]; // layered 的共振层
     else if (k === '--dry-run') a.dryRun = true;
     else throw new Error(`未知参数：${k}`);
   }
@@ -206,16 +209,21 @@ function main() {
   let rows;
 
   if (args.mode === 'direct') {
-    const atoms = byFamily.get('piece_place');
-    if (!atoms?.length) throw new Error('没找到 piece_place 族（direct 模式需要整录素材）');
+    const fam = args.family ?? (byFamily.size === 1 ? [...byFamily.keys()][0] : null);
+    if (!fam) throw new Error(`目录里有 ${byFamily.size} 个 source，用 --family 指定一个：${[...byFamily.keys()].join(' / ')}`);
+    const atoms = byFamily.get(fam);
+    if (!atoms?.length) throw new Error(`没找到 source「${fam}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
     const gain = familyGain(srcDir, atoms);
-    console.log(`\ndirect · piece_place ${atoms.length} 个 · 整族增益 ${gain.toFixed(2)}dB（最响的对齐到 ${TARGET_PEAK_DB}dBFS）`);
+    console.log(`\ndirect · ${fam} ${atoms.length} 个 · 整族增益 ${gain.toFixed(2)}dB（最响的对齐到 ${TARGET_PEAK_DB}dBFS）`);
     rows = renderDirect(srcDir, outDir, atoms, gain, args.defId, args.dryRun);
   } else {
-    const contacts = byFamily.get('piece_contact_dry');
-    const bodies = byFamily.get('board_body');
-    if (!contacts?.length) throw new Error('没找到 piece_contact_dry 族');
-    if (!bodies?.length) throw new Error('没找到 board_body 族');
+    if (!args.contact || !args.body) {
+      throw new Error(`layered 模式要指定两层：--contact <source> --body <source>。目录里有：${[...byFamily.keys()].join(' / ')}`);
+    }
+    const contacts = byFamily.get(args.contact);
+    const bodies = byFamily.get(args.body);
+    if (!contacts?.length) throw new Error(`没找到 contact 层「${args.contact}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
+    if (!bodies?.length) throw new Error(`没找到 body 层「${args.body}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
     const gains = { contact: familyGain(srcDir, contacts), body: familyGain(srcDir, bodies) };
     console.log(`\nlayered · contact ${contacts.length} × body ${bodies.length}`);
     console.log(`  contact 增益 ${gains.contact.toFixed(2)}dB · body 增益 ${gains.body.toFixed(2)}dB${args.bodyGain >= 0 ? '+' : ''}${args.bodyGain}dB(--body-gain) · body 延迟 ${args.bodyDelay}ms`);
@@ -238,4 +246,9 @@ function main() {
   console.log(`\n（先把现有的 ${args.defId}*.mp3 备份出来，好换回去 A/B）\n`);
 }
 
-main();
+try {
+  main();
+} catch (e) {
+  console.error(`\n✗ ${e.message}\n`);
+  process.exit(1);
+}

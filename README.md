@@ -84,12 +84,15 @@ desk_padded__fingernail__r_center__f2__01.wav
 ...
 ```
 
-**4. Compose** — layer atoms into variants, or just normalize and render single-source ones:
+**4. Compose** — normalize and render a single source, or layer two sources into one sound:
 
 ```bash
-atom-mix --mode layered --body-gain -3 --body-delay 4
-atom-mix --mode direct
+atom-mix --mode direct --src atoms/ --family desk_padded --def-id piece-move
+atom-mix --mode layered --src atoms/ --contact piece_tap --body board_body --body-delay 4
 ```
+
+Output is numbered `{def-id}.mp3`, `{def-id}-2.mp3`, … so it drops straight into an
+engine that picks randomly from a variant pool.
 
 ## Three rules the pipeline is built on
 

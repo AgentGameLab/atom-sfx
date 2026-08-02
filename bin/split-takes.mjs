@@ -413,4 +413,9 @@ function main() {
   console.log(`报告：${join(outDir, 'split-report.json')}\n`);
 }
 
-main();
+try {
+  main();
+} catch (e) {
+  console.error(`\n✗ ${e.message}\n`);
+  process.exit(1);
+}
