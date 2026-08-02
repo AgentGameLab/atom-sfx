@@ -51,6 +51,7 @@ function parseArgs(argv) {
     else if (k === '--min-peak') a.minPeak = Number(argv[++i]); // 滤掉低于此 dBFS 的 take
     else if (k === '--min-dur') a.minDur = Number(argv[++i]); // 滤掉短于此 ms 的 take
     else if (k === '--gate') a.gate = Number(argv[++i]); // 触发门限，噪声地板之上多少 dB（默认 21.6）
+    else if (k === '--require-marker') a.requireMarker = true; // 只要第一个 marker 之后的 take
     else if (k === '--ng') a.ng = true;
     else throw new Error(`未知参数：${k}`);
   }
@@ -373,10 +374,17 @@ function main() {
   // 持续音场景优先用 --min-dur：实测喷火录音里杂音和真素材的**电平完全重叠**
   // （火 -25.0/-30.1dBFS，呼吸和放东西 -28.4/-30.3/-33.7），--min-peak 分不开；
   // 但时长差 100 倍（火 8.9s vs 杂音 26-81ms），--min-dur 一刀切干净。
+  // --require-marker：第一个 marker 之前的 take 一律不要。口报刚说完顺手试一下
+  // 是常见动作，那一下混进正式素材里会占掉 variant 编号还拉歪族增益。
+  const firstMarker = args.requireMarker && markers.length ? markers[0].ms : null;
   let filtered = 0;
   for (const it of items) {
     if (it.kind !== 'take') continue;
-    if ((args.minPeak != null && it.peakDb < args.minPeak) || (args.minDur != null && it.dur < args.minDur)) {
+    if (
+      (args.minPeak != null && it.peakDb < args.minPeak) ||
+      (args.minDur != null && it.dur < args.minDur) ||
+      (firstMarker != null && it.start < firstMarker)
+    ) {
       it.kind = 'noise';
       filtered++;
     }
