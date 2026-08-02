@@ -1,0 +1,20 @@
+{
+  "name": "atom-sfx",
+  "version": "0.1.0",
+  "description": "Offline foley pipeline: turn a long take-recording into named, axis-annotated sound atoms, then compose them into game-ready variants.",
+  "type": "module",
+  "bin": {
+    "atom-split": "bin/split-takes.mjs",
+    "atom-mix": "bin/mix-layers.mjs"
+  },
+  "scripts": {
+    "split": "node bin/split-takes.mjs",
+    "mix": "node bin/mix-layers.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "keywords": ["sfx", "foley", "game-audio", "procedural-audio", "ffmpeg"],
+  "files": ["bin", "docs", "README.md", "LICENSE"]
+}

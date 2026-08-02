@@ -1,0 +1,17 @@
+# 素材永远不进仓 —— 体积一路涨，git 存二进制也没法 diff
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.pkf
+atoms/
+raw/
+candidates/
+audio-src/
+
+# 报告产物
+split-report.json
+mix-report.json
+
+node_modules/
+.DS_Store
