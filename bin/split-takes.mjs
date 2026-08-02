@@ -275,8 +275,13 @@ function atomNameFromMap(map, gi, take) {
   const g = map.groups?.[gi];
   const parts = [map.source, map.technique];
   if (g?.axis) for (const [k, v] of Object.entries(g.axis)) parts.push(`${k}_${v}`);
-  if (map.tierAxis && take.tier) parts.push(`${map.tierAxis}${take.tier}`);
-  parts.push(String(take.vit ?? 1).padStart(2, '0'));
+  // tierMap：一个 marker 档位展开成多个轴 —— 双轴录法（位置 × 力度）打出来
+  // 是 9 个连续 marker，但语义是 3×3，靠 tierAxis 单字母表达不了
+  const tm = map.tierMap?.[String(take.tier)];
+  if (tm) for (const [k, v] of Object.entries(tm)) parts.push(`${k}_${v}`);
+  else if (map.tierAxis && take.tier) parts.push(`${map.tierAxis}${take.tier}`);
+  // variantOffset：同一档被中途的口报切成两组时，让后一组的编号接着数不撞名
+  parts.push(String((take.vit ?? 1) + (g?.variantOffset ?? 0)).padStart(2, '0'));
   return parts.filter(Boolean).join('__') + '.wav';
 }
 
@@ -385,11 +390,13 @@ function main() {
     const entry = slates[gi];
     const mapG = mapCfg?.groups?.[gi];
     const label = mapCfg
-      ? mapG
-        ? Object.entries(mapG.axis ?? {})
-            .map(([k, v]) => `${k}=${v}`)
-            .join(' ') || `组${gi + 1}`
-        : '⚠ map 里没有对应组'
+      ? mapG?.skip
+        ? `（skip：${mapG.why ?? '不入库'}）`
+        : mapG
+          ? Object.entries(mapG.axis ?? {})
+              .map(([k, v]) => `${k}=${v}`)
+              .join(' ') || `组${gi + 1}`
+          : '⚠ map 里没有对应组'
       : entry
         ? entry.slate
         : '⚠ 表里没有对应条目';
@@ -398,7 +405,7 @@ function main() {
     if (said) console.log(`       「${said.slice(0, 70)}${said.length > 70 ? '…' : ''}」`);
     g.takes.forEach((t, ti) => {
       const name = mapCfg
-        ? mapG
+        ? mapG && !mapG.skip
           ? atomNameFromMap(mapCfg, gi, t)
           : `unmapped_${gi + 1}_${ti + 1}.wav`
         : entry
@@ -457,9 +464,11 @@ function main() {
     cut(input, join(outDir, r.name), r.startMs, r.endMs);
     n++;
   }
-  writeFileSync(join(outDir, 'split-report.json'), JSON.stringify({ input, generatedAt: new Date().toISOString(), thresholdDb: 20 * Math.log10(thOn / 32768), rows }, null, 2));
+  // 报告名带 source —— 多份录音切进同一个原子目录时，固定名会互相覆盖
+  const reportName = `split-report${mapCfg?.source ? `-${mapCfg.source}` : ''}.json`;
+  writeFileSync(join(outDir, reportName), JSON.stringify({ input, source: mapCfg?.source ?? null, note: mapCfg?.note ?? null, generatedAt: new Date().toISOString(), thresholdDb: 20 * Math.log10(thOn / 32768), rows }, null, 2));
   console.log(`\n写出 ${n} 个原子到 ${outDir}`);
-  console.log(`报告：${join(outDir, 'split-report.json')}\n`);
+  console.log(`报告：${join(outDir, reportName)}\n`);
 }
 
 try {
