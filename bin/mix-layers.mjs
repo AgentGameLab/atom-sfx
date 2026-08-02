@@ -29,15 +29,23 @@ const TARGET_PEAK_DB = -3; // 族内最响的那个对齐到这里
 const MP3_BITRATE = '192k'; // §7A 说 128-192 够用，源侧取上限
 
 function parseArgs(argv) {
-  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: -3, bodyDelay: 4, defId: 'sfx', dryRun: false, family: null, contact: null, body: null };
+  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: [-3], bodyDelay: 4, defId: ['sfx'], dryRun: false, family: null, contact: null, body: null };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
     if (k === '--mode') a.mode = argv[++i];
     else if (k === '--src') a.src = argv[++i];
     else if (k === '--out') a.out = argv[++i];
-    else if (k === '--body-gain') a.bodyGain = Number(argv[++i]);
+    // 逗号分隔就是按档给：--body-gain -14.7,-13,-10.4,-9
+    // body 层的量本身是第二条轴 —— 轻撞也激发共振，只是弱得多
+    else if (k === '--body-gain') a.bodyGain = argv[++i].split(',').map(Number);
+    else if (k === '--pair-axis') a.pairAxis = argv[++i]; // 两层按哪个轴键配对（默认 force）
+    // body 层限定到某个轴取值，如 --body-axis r=center。body 族常有配对轴之外的
+    // 维度（落点位置），不筛的话组合数会爆，而且不同位置音色不一致
+    else if (k === '--body-axis') a.bodyAxis = argv[++i];
+    else if (k === '--contact-axis') a.contactAxis = argv[++i]; // 同上，筛 contact 层
     else if (k === '--body-delay') a.bodyDelay = Number(argv[++i]);
-    else if (k === '--def-id') a.defId = argv[++i];
+    // 逗号分隔 = 每档一个 defId，运行时按 tier 选池（不用改 AudioManager）
+    else if (k === '--def-id') a.defId = argv[++i].split(',');
     else if (k === '--family') a.family = argv[++i]; // direct 模式用哪个 source
     else if (k === '--contact') a.contact = argv[++i]; // layered 的瞬态层
     else if (k === '--body') a.body = argv[++i]; // layered 的共振层
@@ -143,22 +151,43 @@ function renderDirect(srcDir, outDir, atoms, gainDb, defId, dryRun) {
   return rows;
 }
 
-function renderLayered(srcDir, outDir, contacts, bodies, gains, opts) {
+function renderLayered(srcDir, outDir, contactsIn, bodies, gains, opts) {
+  let contacts = contactsIn;
   const rows = [];
   // 按 force 配对：同一力度档的 contact 和 body 才配在一起
+  const key = opts.pairAxis ?? 'force';
   const byForce = (list) => {
     const m = new Map();
     for (const a of list) {
-      const f = a.axis.force ?? 'na';
+      const f = a.axis[key] ?? a.axis.force ?? 'na';
       if (!m.has(f)) m.set(f, []);
       m.get(f).push(a);
     }
     return m;
   };
+  const pick = (list, spec, what) => {
+    if (!spec) return list;
+    const [k2, v2] = spec.split('=');
+    const out = list.filter((a) => a.axis[k2] === v2);
+    if (!out.length) throw new Error(`--${what}-axis ${spec} 筛完是空的，族里有：${[...new Set(list.map((a) => `${k2}=${a.axis[k2]}`))].join(' / ')}`);
+    return out;
+  };
+  contacts = pick(contacts, opts.contactAxis, 'contact');
+  let bodyList = bodies;
+  if (opts.bodyAxis) {
+    const [bk, bv] = opts.bodyAxis.split('=');
+    bodyList = bodies.filter((a) => a.axis[bk] === bv);
+    if (!bodyList.length) throw new Error(`--body-axis ${opts.bodyAxis} 筛完是空的，body 族里有：${[...new Set(bodies.map((a) => `${bk}=${a.axis[bk]}`))].join(' / ')}`);
+  }
   const cf = byForce(contacts);
-  const bf = byForce(bodies);
-  let n = 0;
-  for (const force of ['soft', 'mid', 'firm']) {
+  const bf = byForce(bodyList);
+  // 遍历两边都有的档，而不是写死档名 —— 轴的取值是素材决定的
+  const tiers = [...cf.keys()].filter((k) => bf.has(k)).sort();
+  const bgAt = (i) => opts.bodyGain[Math.min(i, opts.bodyGain.length - 1)];
+  for (const [ti, force] of tiers.entries()) {
+    const bodyGain = bgAt(ti);
+    const defId = opts.defId[Math.min(ti, opts.defId.length - 1)];
+    let n = 0;
     const cs = (cf.get(force) ?? []).sort((a, b) => a.variant - b.variant);
     const bs = (bf.get(force) ?? []).sort((a, b) => a.file.localeCompare(b.file));
     if (!cs.length || !bs.length) {
@@ -168,18 +197,18 @@ function renderLayered(srcDir, outDir, contacts, bodies, gains, opts) {
     for (const c of cs) {
       for (const b of bs) {
         n++;
-        const out = join(outDir, outName(opts.defId, n));
+        const out = join(outDir, outName(defId, n));
         rows.push({
-          out: outName(opts.defId, n), force,
+          out: outName(defId, n), force,
           contact: c.file, body: b.file,
           contactGainDb: Number(gains.contact.toFixed(2)),
-          bodyGainDb: Number((gains.body + opts.bodyGain).toFixed(2)),
+          bodyGainDb: Number((gains.body + bodyGain).toFixed(2)),
           bodyDelayMs: opts.bodyDelay,
         });
         if (opts.dryRun) continue;
         const fc = [
           `[0:a]volume=${gains.contact.toFixed(2)}dB,${SHAPE_CONTACT}[c]`,
-          `[1:a]adelay=delays=${opts.bodyDelay}:all=1,volume=${(gains.body + opts.bodyGain).toFixed(2)}dB,${SHAPE_BODY}[b]`,
+          `[1:a]adelay=delays=${opts.bodyDelay}:all=1,volume=${(gains.body + bodyGain).toFixed(2)}dB,${SHAPE_BODY}[b]`,
           `[c][b]amix=inputs=2:duration=longest:normalize=0[m]`,
           `[m]alimiter=limit=0.89[out]`,
         ].join(';');
@@ -215,7 +244,7 @@ function main() {
     if (!atoms?.length) throw new Error(`没找到 source「${fam}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
     const gain = familyGain(srcDir, atoms);
     console.log(`\ndirect · ${fam} ${atoms.length} 个 · 整族增益 ${gain.toFixed(2)}dB（最响的对齐到 ${TARGET_PEAK_DB}dBFS）`);
-    rows = renderDirect(srcDir, outDir, atoms, gain, args.defId, args.dryRun);
+    rows = renderDirect(srcDir, outDir, atoms, gain, args.defId[0], args.dryRun);
   } else {
     if (!args.contact || !args.body) {
       throw new Error(`layered 模式要指定两层：--contact <source> --body <source>。目录里有：${[...byFamily.keys()].join(' / ')}`);
@@ -226,7 +255,7 @@ function main() {
     if (!bodies?.length) throw new Error(`没找到 body 层「${args.body}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
     const gains = { contact: familyGain(srcDir, contacts), body: familyGain(srcDir, bodies) };
     console.log(`\nlayered · contact ${contacts.length} × body ${bodies.length}`);
-    console.log(`  contact 增益 ${gains.contact.toFixed(2)}dB · body 增益 ${gains.body.toFixed(2)}dB${args.bodyGain >= 0 ? '+' : ''}${args.bodyGain}dB(--body-gain) · body 延迟 ${args.bodyDelay}ms`);
+    console.log(`  contact 增益 ${gains.contact.toFixed(2)}dB · body 增益 ${gains.body.toFixed(2)}dB，各档再叠 [${args.bodyGain.join(', ')}]dB · body 延迟 ${args.bodyDelay}ms`);
     rows = renderLayered(srcDir, outDir, contacts, bodies, gains, args);
   }
 
@@ -241,7 +270,7 @@ function main() {
   writeFileSync(join(outDir, 'mix-report.json'), JSON.stringify({ mode: args.mode, generatedAt: new Date().toISOString(), opts: { bodyGain: args.bodyGain, bodyDelay: args.bodyDelay, targetPeakDb: TARGET_PEAK_DB }, rows }, null, 2));
   console.log(`\n写到 ${outDir}`);
   console.log(`\n装进游戏试听：`);
-  console.log(`  cp ${join(args.out, `${args.defId}*.mp3`)} public/audio/sfx/`);
+  console.log(`  cp ${join(args.out, `${args.defId[0]}*.mp3`)} public/audio/sfx/`);
   console.log(`  node scripts/audio-manifest.mjs`);
   console.log(`\n（先把现有的 ${args.defId}*.mp3 备份出来，好换回去 A/B）\n`);
 }
