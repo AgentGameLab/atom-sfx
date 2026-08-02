@@ -50,6 +50,7 @@ function parseArgs(argv) {
     else if (k === '--speech') a.speech = argv[++i];
     else if (k === '--min-peak') a.minPeak = Number(argv[++i]); // 滤掉低于此 dBFS 的 take
     else if (k === '--min-dur') a.minDur = Number(argv[++i]); // 滤掉短于此 ms 的 take
+    else if (k === '--gate') a.gate = Number(argv[++i]); // 触发门限，噪声地板之上多少 dB（默认 21.6）
     else if (k === '--ng') a.ng = true;
     else throw new Error(`未知参数：${k}`);
   }
@@ -167,6 +168,33 @@ function segment(env, thOn, thOff, minActiveMs = 8, minGapMs = 150) {
   return segs;
 }
 
+/**
+ * marker 落在某一段内部时，在 marker 处把它切开 —— marker 语义上就是 take 边界。
+ *
+ * 为什么需要：持续音（摩擦、火、风）压低门限才捞得到轻的那档，但压低之后
+ * 段间静音也过线，整批连成一片。实测皮革摩擦：默认门限漏掉最轻的两档，
+ * 门限降到 +12dB 后 18 段塌成 3 段。靠 marker 切就两头都不误。
+ */
+function splitAtMarkers(segs, points, guardMs = 60) {
+  if (!points.length) return segs;
+  const sorted = [...new Set(points)].sort((a, b) => a - b);
+  const out = [];
+  for (const s of segs) {
+    const inside = sorted.filter((ms) => ms > s.start + guardMs && ms < s.end - guardMs);
+    if (!inside.length) {
+      out.push(s);
+      continue;
+    }
+    let prev = s.start;
+    for (const ms of inside) {
+      out.push({ start: prev, end: ms - 1 });
+      prev = ms;
+    }
+    out.push({ start: prev, end: s.end });
+  }
+  return out;
+}
+
 function analyze(seg, env) {
   const dur = seg.end - seg.start;
   let peak = 0;
@@ -273,7 +301,8 @@ function atomName(entry, n) {
  */
 function atomNameFromMap(map, gi, take) {
   const g = map.groups?.[gi];
-  const parts = [map.source, map.technique];
+  // technique 可以按组覆盖 —— 一份录音里常有多种手法（抽卡 / 洗牌）
+  const parts = [map.source, g?.technique ?? map.technique];
   if (g?.axis) for (const [k, v] of Object.entries(g.axis)) parts.push(`${k}_${v}`);
   // tierMap：一个 marker 档位展开成多个轴 —— 双轴录法（位置 × 力度）打出来
   // 是 9 个连续 marker，但语义是 3×3，靠 tierAxis 单字母表达不了
@@ -318,11 +347,19 @@ function main() {
   // 实测（73s 真实素材，底噪 -64.4dBFS）：+12dB 太敏感，段间底噪波动没掉下去，
   // 整段连成 1 段。ffmpeg silencedetect 扫阈值显示 -40~-45dB 是稳定平台
   // （都检出 41 个间隔），-50dB 起开始把信号内部低谷也当静音（跳到 88）。
-  const thOn = Math.max(floor * 12, globalPeak * 0.01);
+  // 显式给 --gate 就只按噪声地板算，不再受峰值下限约束 —— 轻素材（皮革摩擦、
+  // 布料、轻刮）实测 peak 只有 -41dBFS，默认门限 -42 会把整段吃掉，
+  // marker 编号跳号就是这么来的。
+  const thOn = args.gate != null ? floor * Math.pow(10, args.gate / 20) : Math.max(floor * 12, globalPeak * 0.01);
   const thOff = thOn * 0.5;
 
-  const segs = segment(env, thOn, thOff);
+  const markers = readCues(input);
   const speech = args.speech ? JSON.parse(readFileSync(args.speech, 'utf8')).spans ?? [] : null;
+  // 切点 = marker + 语音边界。语音边界也要切，否则低门限下一段长素材会把
+  // 中间那句短口报吞进去（重叠不过半 → 整段判成 take，口报混在素材里）
+  const cutPoints = markers.map((m) => m.ms);
+  if (speech) for (const sp of speech) cutPoints.push(Math.round(sp.s * 1000), Math.round(sp.e * 1000));
+  const segs = splitAtMarkers(segment(env, thOn, thOff), cutPoints);
   const items = segs.map((s) => {
     const a = analyze(s, env);
     if (speech) {
@@ -349,7 +386,6 @@ function main() {
   // ── marker 分档 ──
   // 录的时候换档按一次 M。算法能准确切出每一下，但猜不出档位边界
   // （实测：主观「轻」和「中」峰值只差 <3dB，混在一起分不开），marker 把它定死。
-  const markers = readCues(input);
   for (const g of groups) {
     for (const t of g.takes) {
       const before = markers.filter((m) => m.ms > g.slateAt && m.ms <= t.start);
