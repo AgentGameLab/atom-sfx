@@ -261,6 +261,13 @@ function group(items) {
   const groups = [];
   let cur = null;
   const warnings = [];
+  // 不口报、只打 marker 也是合法工作流 —— 没有任何口报时全部 take 归一组，
+  // 否则它们会被当成「第一个口报之前的」全部丢掉。
+  // （颤动/刮擦类是慢 attack + 多峰，启发式容易误判成口报，所以这条必须兜住）
+  if (!items.some((i) => i.kind === 'slate')) {
+    cur = { slateAt: 0, takes: [] };
+    groups.push(cur);
+  }
   for (const it of items) {
     if (it.kind === 'slate') {
       // 当前组还没收到 take → 这是同一段口报里的换气停顿，不开新组，只延长区间。
