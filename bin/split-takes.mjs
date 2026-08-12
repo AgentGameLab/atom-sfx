@@ -403,7 +403,9 @@ function main() {
   // （实测：主观「轻」和「中」峰值只差 <3dB，混在一起分不开），marker 把它定死。
   for (const g of groups) {
     for (const t of g.takes) {
-      const before = markers.filter((m) => m.ms > g.slateAt && m.ms <= t.start);
+      // >= 而不是 > ：不口报时虚拟组起点是 0，marker 打在 0.0s（录制一开始就按 M）
+      // 会正好落在边界外，那一档的 take 全部丢失档位标签
+      const before = markers.filter((m) => m.ms >= g.slateAt && m.ms <= t.start);
       t.tier = before.length + 1;
       t.tierLabel = before.length ? before[before.length - 1].label : null;
     }
