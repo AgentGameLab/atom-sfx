@@ -1,0 +1,10 @@
+{ "source": "chessboard", "technique": "knock", "tierAxis": "f",
+  "note": "大棋盘。落点中心/圆环/边缘/角落各三档 + 敲盘侧边 + 木头在木头上滑动",
+  "groups": [
+    { "axis": { "r": "center" } },
+    { "axis": { "r": "ring" } },
+    { "axis": { "r": "edge" } },
+    { "axis": { "r": "corner" } },
+    { "technique": "knock_side" },
+    { "technique": "wood_slide" }
+  ] }

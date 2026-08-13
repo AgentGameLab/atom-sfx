@@ -1,0 +1,100 @@
+{
+  "input": "D:\\Music\\视频配音\\音效录制-印章落下.wav",
+  "source": "seal",
+  "note": "印章落下按压。软木平底按纸，两档力度（marker 之前那下是试按）",
+  "generatedAt": "2026-08-13T04:24:49.617Z",
+  "thresholdDb": -46.093847850982414,
+  "rows": [
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "seal__press__f1__01.wav",
+      "startMs": 4766,
+      "endMs": 4908,
+      "attackMs": 4,
+      "durMs": 142,
+      "peakDb": -12.03
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 2,
+      "tierLabel": "标记 02",
+      "variantInTier": 1,
+      "name": "seal__press__f2__01.wav",
+      "startMs": 7257,
+      "endMs": 7395,
+      "attackMs": 5,
+      "durMs": 138,
+      "peakDb": -10.34
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 2,
+      "tierLabel": "标记 02",
+      "variantInTier": 2,
+      "name": "seal__press__f2__02.wav",
+      "startMs": 9580,
+      "endMs": 9794,
+      "attackMs": 5,
+      "durMs": 214,
+      "peakDb": -6.05
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 2,
+      "tierLabel": "标记 02",
+      "variantInTier": 3,
+      "name": "seal__press__f2__03.wav",
+      "startMs": 11840,
+      "endMs": 12057,
+      "attackMs": 10,
+      "durMs": 217,
+      "peakDb": -4.21
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 3,
+      "tierLabel": "标记 03",
+      "variantInTier": 1,
+      "name": "seal__press__f3__01.wav",
+      "startMs": 14501,
+      "endMs": 14715,
+      "attackMs": 5,
+      "durMs": 214,
+      "peakDb": -6.46
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 3,
+      "tierLabel": "标记 03",
+      "variantInTier": 2,
+      "name": "seal__press__f3__02.wav",
+      "startMs": 16276,
+      "endMs": 16489,
+      "attackMs": 4,
+      "durMs": 213,
+      "peakDb": -9.38
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 3,
+      "tierLabel": "标记 03",
+      "variantInTier": 3,
+      "name": "seal__press__f3__03.wav",
+      "startMs": 17786,
+      "endMs": 18016,
+      "attackMs": 7,
+      "durMs": 230,
+      "peakDb": -2.91
+    }
+  ]
+}

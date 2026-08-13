@@ -1,0 +1,11 @@
+{
+  "source": "desk_padded",
+  "technique": "fingernail",
+  "tierAxis": "f",
+  "note": "带垫子的木桌面，指甲敲击；木质回响、沉闷。每组轻/中/重各三下",
+  "groups": [
+    { "axis": { "r": "center" } },
+    { "axis": { "r": "mid" } },
+    { "axis": { "r": "edge" } }
+  ]
+}

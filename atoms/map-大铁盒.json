@@ -1,0 +1,8 @@
+{ "source": "metal_box", "tierAxis": "f",
+  "note": "大铁盒，声音偏沉像钟。两个面各三档敲击 + 开盖 + 关盖",
+  "groups": [
+    { "technique": "strike", "axis": { "side": "1" } },
+    { "technique": "strike", "axis": { "side": "2" } },
+    { "technique": "lid_open" },
+    { "technique": "lid_close" }
+  ] }

@@ -1,0 +1,100 @@
+{
+  "input": "D:\\Music\\音效录制\\音效录制-指甲刀.wav",
+  "source": "nail_clipper",
+  "note": "指甲刀合盖，金属碰撞+机械结构。大/小两个，不分力度",
+  "generatedAt": "2026-08-02T07:42:40.412Z",
+  "thresholdDb": -42.83286111561155,
+  "rows": [
+    {
+      "group": 1,
+      "label": "（skip：口报之间的杂音，918ms 不是 take）",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "unmapped_1_1.wav",
+      "startMs": 6431,
+      "endMs": 7349,
+      "attackMs": 421,
+      "durMs": 918,
+      "peakDb": -17.2
+    },
+    {
+      "group": 2,
+      "label": "size=large",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 1,
+      "name": "nail_clipper__snap_close__size_large__01.wav",
+      "startMs": 24909,
+      "endMs": 24969,
+      "attackMs": 4,
+      "durMs": 60,
+      "peakDb": -9.44
+    },
+    {
+      "group": 2,
+      "label": "size=large",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 2,
+      "name": "nail_clipper__snap_close__size_large__02.wav",
+      "startMs": 30501,
+      "endMs": 30554,
+      "attackMs": 4,
+      "durMs": 53,
+      "peakDb": -11.8
+    },
+    {
+      "group": 2,
+      "label": "size=large",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 3,
+      "name": "nail_clipper__snap_close__size_large__03.wav",
+      "startMs": 36487,
+      "endMs": 36541,
+      "attackMs": 4,
+      "durMs": 54,
+      "peakDb": -13.93
+    },
+    {
+      "group": 3,
+      "label": "size=small",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 1,
+      "name": "nail_clipper__snap_close__size_small__01.wav",
+      "startMs": 47312,
+      "endMs": 47361,
+      "attackMs": 4,
+      "durMs": 49,
+      "peakDb": -12.76
+    },
+    {
+      "group": 3,
+      "label": "size=small",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 2,
+      "name": "nail_clipper__snap_close__size_small__02.wav",
+      "startMs": 52845,
+      "endMs": 52893,
+      "attackMs": 5,
+      "durMs": 48,
+      "peakDb": -13.36
+    },
+    {
+      "group": 3,
+      "label": "size=small",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 3,
+      "name": "nail_clipper__snap_close__size_small__03.wav",
+      "startMs": 56606,
+      "endMs": 56656,
+      "attackMs": 4,
+      "durMs": 50,
+      "peakDb": -9.47
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "input": "D:\\Music\\音效录制\\音效录制-磁吸合并.wav",
+  "source": "magnet_lid",
+  "note": "塑料磁吸盖吸合的关闭声。不分力度，多录几遍",
+  "generatedAt": "2026-08-02T07:42:44.291Z",
+  "thresholdDb": -42.63334401236463,
+  "rows": [
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 1,
+      "name": "magnet_lid__close__01.wav",
+      "startMs": 20921,
+      "endMs": 21027,
+      "attackMs": 40,
+      "durMs": 106,
+      "peakDb": -8.23
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 2,
+      "name": "magnet_lid__close__02.wav",
+      "startMs": 23422,
+      "endMs": 23502,
+      "attackMs": 22,
+      "durMs": 80,
+      "peakDb": -10.03
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 3,
+      "name": "magnet_lid__close__03.wav",
+      "startMs": 26170,
+      "endMs": 26255,
+      "attackMs": 32,
+      "durMs": 85,
+      "peakDb": -9.64
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 4,
+      "name": "magnet_lid__close__04.wav",
+      "startMs": 28896,
+      "endMs": 28986,
+      "attackMs": 21,
+      "durMs": 90,
+      "peakDb": -7.69
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 5,
+      "name": "magnet_lid__close__05.wav",
+      "startMs": 31526,
+      "endMs": 31596,
+      "attackMs": 4,
+      "durMs": 70,
+      "peakDb": -8.2
+    }
+  ]
+}

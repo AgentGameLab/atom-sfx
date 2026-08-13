@@ -1,0 +1,35 @@
+{
+  "input": "D:\\Music\\音效录制\\音效录制-喷火.wav",
+  "source": "flamethrower",
+  "note": "真实喷火器。计划小/中/大三段，第三段没气了没录成",
+  "generatedAt": "2026-08-02T07:43:16.175Z",
+  "thresholdDb": -41.05047567487256,
+  "rows": [
+    {
+      "group": 1,
+      "label": "src=real",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 1,
+      "name": "flamethrower__burst__src_real__f1__01.wav",
+      "startMs": 16791,
+      "endMs": 25659,
+      "attackMs": 78,
+      "durMs": 8868,
+      "peakDb": -25.05
+    },
+    {
+      "group": 1,
+      "label": "src=real",
+      "tier": 2,
+      "tierLabel": "标记 02",
+      "variantInTier": 1,
+      "name": "flamethrower__burst__src_real__f2__01.wav",
+      "startMs": 29143,
+      "endMs": 37418,
+      "attackMs": 2846,
+      "durMs": 8275,
+      "peakDb": -30.06
+    }
+  ]
+}

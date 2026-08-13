@@ -1,0 +1,3 @@
+{ "source": "blade_wood", "technique": "scrape", "tierAxis": "spd",
+  "note": "锋利金属刮过木头，慢/中/快三档速度",
+  "groups": [ { } ] }

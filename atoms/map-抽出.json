@@ -1,0 +1,3 @@
+{ "source": "cardboard", "technique": "pull_out", "tierAxis": "spd",
+  "note": "硬纸板抽出，速度慢/中/快。软木塞拔出实测无声（摩擦系数低+弹性回弹），改纸板纤维撕扯。渐进摩擦包络：attack 122-429ms",
+  "groups": [ { } ] }

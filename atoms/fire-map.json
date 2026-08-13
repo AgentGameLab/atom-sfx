@@ -1,0 +1,6 @@
+{ "source": "flamethrower", "technique": "burst", "tierAxis": "f",
+  "note": "真实喷火器。计划小/中/大三段，第三段没气了没录成",
+  "groups": [
+    { "axis": { "src": "real" } },
+    { "skip": true, "why": "结尾口报『没气了』，后面没有 take" }
+  ] }

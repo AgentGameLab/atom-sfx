@@ -1,0 +1,3 @@
+{ "source": "playing_card", "tierAxis": "v",
+  "note": "真实卡牌。抽一张出来（多版本）/ 洗牌（两版本）",
+  "groups": [ { "technique": "draw" }, { "technique": "shuffle" } ] }

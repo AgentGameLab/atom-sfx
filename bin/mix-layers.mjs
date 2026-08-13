@@ -27,9 +27,11 @@ const SRC_DIR = 'atoms';
 const OUT_ROOT = 'candidates';
 const TARGET_PEAK_DB = -3; // 族内最响的那个对齐到这里
 const MP3_BITRATE = '192k'; // §7A 说 128-192 够用，源侧取上限
+// 输出格式：ogg vorbis（游戏侧口径）或 mp3。ogg 同码率体积更小、无 mp3 的编码延迟
+const CODEC = { ogg: ['-c:a', 'libvorbis', '-q:a', '5'], mp3: ['-c:a', 'libmp3lame', '-b:a', MP3_BITRATE] };
 
 function parseArgs(argv) {
-  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: [-3], bodyDelay: 4, defId: ['sfx'], dryRun: false, family: null, contact: null, body: null };
+  const a = { mode: null, src: SRC_DIR, out: null, bodyGain: [-3], bodyDelay: 4, defId: ['sfx'], dryRun: false, format: 'ogg', family: null, contact: null, body: null };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
     if (k === '--mode') a.mode = argv[++i];
@@ -49,6 +51,7 @@ function parseArgs(argv) {
     else if (k === '--family') a.family = argv[++i]; // direct 模式用哪个 source
     else if (k === '--contact') a.contact = argv[++i]; // layered 的瞬态层
     else if (k === '--body') a.body = argv[++i]; // layered 的共振层
+    else if (k === '--format') a.format = argv[++i]; // ogg（默认）| mp3
     else if (k === '--dry-run') a.dryRun = true;
     else throw new Error(`未知参数：${k}`);
   }
@@ -129,22 +132,22 @@ function familyGain(srcDir, atoms) {
 const SHAPE_CONTACT = 'bass=g=-4:f=200,treble=g=2:f=3000';
 const SHAPE_BODY = 'bass=g=2:f=200,treble=g=-8:f=3000';
 
-function outName(defId, n) {
+function outName(defId, n, ext = 'ogg') {
   // §7A 变体约定：主文件 {defId}.mp3，变体从 {defId}-2.mp3 起
-  return n === 1 ? `${defId}.mp3` : `${defId}-${n}.mp3`;
+  return n === 1 ? `${defId}.${ext}` : `${defId}-${n}.${ext}`;
 }
 
-function renderDirect(srcDir, outDir, atoms, gainDb, defId, dryRun) {
+function renderDirect(srcDir, outDir, atoms, gainDb, defId, dryRun, opts) {
   const rows = [];
   atoms.sort((a, b) => a.file.localeCompare(b.file));
   atoms.forEach((a, i) => {
-    const out = join(outDir, outName(defId, i + 1));
-    rows.push({ out: outName(defId, i + 1), from: a.file, gainDb: Number(gainDb.toFixed(2)), srcPeakDb: a.meas.peakDb });
+    const out = join(outDir, outName(defId, i + 1, opts.format));
+    rows.push({ out: outName(defId, i + 1, opts.format), from: a.file, gainDb: Number(gainDb.toFixed(2)), srcPeakDb: a.meas.peakDb });
     if (dryRun) return;
     const { status, stderr } = ff([
       '-v', 'error', '-y', '-i', join(srcDir, a.file),
       '-af', `volume=${gainDb.toFixed(2)}dB,alimiter=limit=0.89`,
-      '-ac', '1', '-c:a', 'libmp3lame', '-b:a', MP3_BITRATE, out,
+      '-ac', '1', ...CODEC[opts.format], out,
     ]);
     if (status !== 0) throw new Error(`渲染失败 ${out}：${stderr.trim()}`);
   });
@@ -197,9 +200,9 @@ function renderLayered(srcDir, outDir, contactsIn, bodies, gains, opts) {
     for (const c of cs) {
       for (const b of bs) {
         n++;
-        const out = join(outDir, outName(defId, n));
+        const out = join(outDir, outName(defId, n, opts.format));
         rows.push({
-          out: outName(defId, n), force,
+          out: outName(defId, n, opts.format), force,
           contact: c.file, body: b.file,
           contactGainDb: Number(gains.contact.toFixed(2)),
           bodyGainDb: Number((gains.body + bodyGain).toFixed(2)),
@@ -216,7 +219,7 @@ function renderLayered(srcDir, outDir, contactsIn, bodies, gains, opts) {
           '-v', 'error', '-y',
           '-i', join(srcDir, c.file), '-i', join(srcDir, b.file),
           '-filter_complex', fc, '-map', '[out]',
-          '-ac', '1', '-c:a', 'libmp3lame', '-b:a', MP3_BITRATE, out,
+          '-ac', '1', ...CODEC[opts.format], out,
         ]);
         if (status !== 0) throw new Error(`混层失败 ${out}：${stderr.trim()}`);
       }
@@ -244,7 +247,7 @@ function main() {
     if (!atoms?.length) throw new Error(`没找到 source「${fam}」，目录里有：${[...byFamily.keys()].join(' / ')}`);
     const gain = familyGain(srcDir, atoms);
     console.log(`\ndirect · ${fam} ${atoms.length} 个 · 整族增益 ${gain.toFixed(2)}dB（最响的对齐到 ${TARGET_PEAK_DB}dBFS）`);
-    rows = renderDirect(srcDir, outDir, atoms, gain, args.defId[0], args.dryRun);
+    rows = renderDirect(srcDir, outDir, atoms, gain, args.defId[0], args.dryRun, args);
   } else {
     if (!args.contact || !args.body) {
       throw new Error(`layered 模式要指定两层：--contact <source> --body <source>。目录里有：${[...byFamily.keys()].join(' / ')}`);
@@ -270,7 +273,7 @@ function main() {
   writeFileSync(join(outDir, 'mix-report.json'), JSON.stringify({ mode: args.mode, generatedAt: new Date().toISOString(), opts: { bodyGain: args.bodyGain, bodyDelay: args.bodyDelay, targetPeakDb: TARGET_PEAK_DB }, rows }, null, 2));
   console.log(`\n写到 ${outDir}`);
   console.log(`\n装进游戏试听：`);
-  console.log(`  cp ${join(args.out, `${args.defId[0]}*.mp3`)} public/audio/sfx/`);
+  console.log(`  cp ${join(args.out, `${args.defId[0]}*.${args.format}`)} public/audio/sfx/`);
   console.log(`  node scripts/audio-manifest.mjs`);
   console.log(`\n（先把现有的 ${args.defId}*.mp3 备份出来，好换回去 A/B）\n`);
 }

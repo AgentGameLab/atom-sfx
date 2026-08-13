@@ -1,17 +1,21 @@
-# 素材永远不进仓 —— 体积一路涨，git 存二进制也没法 diff
+# 原始长录音不进仓 —— 200MB+ 且 atoms/ 已是它的精华
+raw/
+*.pkf
+
+# 渲染产物不进仓 —— 可从 atoms/ + 参数完全再生
+candidates/
+audio-src/
+mix-report.json
+
+# 但 atoms/ 进仓：它是不可再生的录音原料，也是这个仓真正的资产
+# （工具没素材等于空壳，clone 下来要能直接跑）
+# 例外规则见下：默认排除音频，再显式放行 atoms/
 *.wav
 *.mp3
 *.ogg
 *.flac
-*.pkf
-atoms/
-raw/
-candidates/
-audio-src/
-
-# 报告产物
-split-report.json
-mix-report.json
+!atoms/**/*.wav
+!atoms/*.wav
 
 node_modules/
 .DS_Store

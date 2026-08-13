@@ -1,0 +1,48 @@
+{
+  "input": "D:\\Music\\视频配音\\音效录制-卷轴展开.wav",
+  "source": "scroll",
+  "note": "卷轴展开三段。第一段小天点名较好（1.5s，比后两段响 11dB）",
+  "generatedAt": "2026-08-13T04:46:21.966Z",
+  "thresholdDb": -40.86297783205494,
+  "rows": [
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "scroll__unroll__01.wav",
+      "startMs": 746,
+      "endMs": 2255,
+      "attackMs": 888,
+      "durMs": 1509,
+      "peakDb": -23.95
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 2,
+      "name": "scroll__unroll__02.wav",
+      "startMs": 3372,
+      "endMs": 5249,
+      "attackMs": 1727,
+      "durMs": 1877,
+      "peakDb": -35.06
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 3,
+      "name": "scroll__unroll__03.wav",
+      "startMs": 6549,
+      "endMs": 8615,
+      "attackMs": 1752,
+      "durMs": 2066,
+      "peakDb": -34.79
+    }
+  ]
+}

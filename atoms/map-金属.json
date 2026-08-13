@@ -1,0 +1,3 @@
+{ "source": "metal_board", "technique": "piece_drop", "tierAxis": "f",
+  "note": "棋子落金属板。伤门铁用。三档力度，余韵 343-490ms 明显长于石板",
+  "groups": [ { } ] }

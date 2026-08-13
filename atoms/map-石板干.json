@@ -1,0 +1,3 @@
+{ "source": "stone_slab", "technique": "piece_drop", "tierAxis": "f",
+  "note": "棋子落石板（干）。开门青石用。三档力度，marker 前那档是档1",
+  "groups": [ { "axis": { "damp": "dry" } } ] }

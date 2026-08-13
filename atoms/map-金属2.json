@@ -1,0 +1,6 @@
+{ "source": "metal_board2", "technique": "piece_drop",
+  "note": "棋子落金属板 第二份。落点轴：中间/边上一点/最边缘。低频三档几乎不变(1.5dB)，变的全是中高频=板振动模态。小天定为死门青铜",
+  "groups": [ { } ],
+  "tierMap": {
+    "1": { "r": "center" }, "2": { "r": "mid" }, "3": { "r": "edge" }
+  } }

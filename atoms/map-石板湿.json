@@ -1,0 +1,3 @@
+{ "source": "stone_slab", "technique": "piece_drop", "tierAxis": "f",
+  "note": "棋子落石板（垫湿）。生门苔石用。同一块石板只改阻尼=受控变量",
+  "groups": [ { "axis": { "damp": "wet" } } ] }

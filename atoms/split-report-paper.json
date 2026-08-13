@@ -1,0 +1,48 @@
+{
+  "input": "D:\\Music\\视频配音\\音效录制-铺平纸张.wav",
+  "source": "paper",
+  "note": "手掌铺平纸张。小天点名也可用作翻页类。三个变体动作略不同（渐进抹平/拍平/推平）",
+  "generatedAt": "2026-08-13T04:24:48.569Z",
+  "thresholdDb": -39.769629105448665,
+  "rows": [
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "paper__flatten__01.wav",
+      "startMs": 257,
+      "endMs": 795,
+      "attackMs": 392,
+      "durMs": 538,
+      "peakDb": -17.66
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 2,
+      "name": "paper__flatten__02.wav",
+      "startMs": 1440,
+      "endMs": 1767,
+      "attackMs": 4,
+      "durMs": 327,
+      "peakDb": -25.5
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 3,
+      "name": "paper__flatten__03.wav",
+      "startMs": 2489,
+      "endMs": 2760,
+      "attackMs": 210,
+      "durMs": 271,
+      "peakDb": -16.94
+    }
+  ]
+}

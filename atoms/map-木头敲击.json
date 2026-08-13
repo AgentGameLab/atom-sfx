@@ -1,0 +1,3 @@
+{ "source": "wood_block", "technique": "strike", "tierAxis": "f",
+  "note": "两块小木料对敲。小天点名：模拟棋子之间碰撞。轻/中/重三档",
+  "groups": [ { } ] }

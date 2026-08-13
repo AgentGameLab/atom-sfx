@@ -1,0 +1,3 @@
+{ "source": "scroll", "technique": "unroll",
+  "note": "卷轴展开三段。第一段小天点名较好（1.5s，比后两段响 11dB）",
+  "groups": [ { } ] }

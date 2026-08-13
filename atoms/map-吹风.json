@@ -1,0 +1,8 @@
+{ "source": "breath_whoosh", "technique": "mouth",
+  "note": "口吹模仿破空声。三版：重物挥动 / 轻快滑过 / 锋利如划纸",
+  "groups": [
+    { "axis": { "w": "heavy" } },
+    { "axis": { "w": "light" } },
+    { "axis": { "w": "sharp" } },
+    { "axis": { "w": "sharp" }, "variantOffset": 1 }
+  ] }

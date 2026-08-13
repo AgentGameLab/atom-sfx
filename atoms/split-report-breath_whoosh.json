@@ -1,0 +1,113 @@
+{
+  "input": "D:\\Music\\音效录制\\音效录制-吹风.wav",
+  "source": "breath_whoosh",
+  "note": "口吹模仿破空声。三版：重物挥动 / 轻快滑过 / 锋利如划纸",
+  "generatedAt": "2026-08-02T07:42:39.547Z",
+  "thresholdDb": -42.15114984641716,
+  "rows": [
+    {
+      "group": 1,
+      "label": "w=heavy",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 1,
+      "name": "breath_whoosh__mouth__w_heavy__01.wav",
+      "startMs": 20364,
+      "endMs": 20726,
+      "attackMs": 126,
+      "durMs": 362,
+      "peakDb": -27.41
+    },
+    {
+      "group": 1,
+      "label": "w=heavy",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 2,
+      "name": "breath_whoosh__mouth__w_heavy__02.wav",
+      "startMs": 22368,
+      "endMs": 22737,
+      "attackMs": 153,
+      "durMs": 369,
+      "peakDb": -29.6
+    },
+    {
+      "group": 1,
+      "label": "w=heavy",
+      "tier": 1,
+      "tierLabel": "标记 01",
+      "variantInTier": 3,
+      "name": "breath_whoosh__mouth__w_heavy__03.wav",
+      "startMs": 24144,
+      "endMs": 24469,
+      "attackMs": 163,
+      "durMs": 325,
+      "peakDb": -28.25
+    },
+    {
+      "group": 2,
+      "label": "w=light",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 1,
+      "name": "breath_whoosh__mouth__w_light__01.wav",
+      "startMs": 31651,
+      "endMs": 31939,
+      "attackMs": 54,
+      "durMs": 288,
+      "peakDb": -24.03
+    },
+    {
+      "group": 2,
+      "label": "w=light",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 2,
+      "name": "breath_whoosh__mouth__w_light__02.wav",
+      "startMs": 33087,
+      "endMs": 33262,
+      "attackMs": 49,
+      "durMs": 175,
+      "peakDb": -25.51
+    },
+    {
+      "group": 2,
+      "label": "w=light",
+      "tier": 1,
+      "tierLabel": "标记 02",
+      "variantInTier": 3,
+      "name": "breath_whoosh__mouth__w_light__03.wav",
+      "startMs": 34723,
+      "endMs": 34959,
+      "attackMs": 87,
+      "durMs": 236,
+      "peakDb": -21.45
+    },
+    {
+      "group": 3,
+      "label": "w=sharp",
+      "tier": 1,
+      "tierLabel": "标记 03",
+      "variantInTier": 1,
+      "name": "breath_whoosh__mouth__w_sharp__01.wav",
+      "startMs": 41637,
+      "endMs": 41837,
+      "attackMs": 57,
+      "durMs": 200,
+      "peakDb": -29.27
+    },
+    {
+      "group": 4,
+      "label": "w=sharp",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "breath_whoosh__mouth__w_sharp__02.wav",
+      "startMs": 45103,
+      "endMs": 45302,
+      "attackMs": 91,
+      "durMs": 199,
+      "peakDb": -25.96
+    }
+  ]
+}

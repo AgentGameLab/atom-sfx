@@ -1,0 +1,6 @@
+{ "source": "chessboard", "technique": "knock", "tierAxis": "f",
+  "note": "只补滑动组（本身只有 -29~-34dBFS，敲击那遍的 min-peak 会滤掉）",
+  "groups": [
+    { "skip": true }, { "skip": true }, { "skip": true }, { "skip": true }, { "skip": true },
+    { "technique": "wood_slide" }
+  ] }

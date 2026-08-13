@@ -1,0 +1,7 @@
+{ "source": "nail_clipper", "technique": "snap_close",
+  "note": "指甲刀合盖，金属碰撞+机械结构。大/小两个，不分力度",
+  "groups": [
+    { "skip": true, "why": "口报之间的杂音，918ms 不是 take" },
+    { "axis": { "size": "large" } },
+    { "axis": { "size": "small" } }
+  ] }

@@ -121,8 +121,16 @@ engine that picks randomly from a variant pool.
 - **Cutting must re-encode, never `-c copy`.** WAV `-c copy` seeks at packet granularity, so `-ss` rounds to a packet boundary and silently eats the attack. `pcm_f32le → pcm_f32le` is lossless and sample-accurate.
 - **NG detection is off by default.** The "not a take and short" heuristic misfires on soft hits (their attack exceeds the transient threshold) and would silently discard a good take. Enable with `--ng` if you want it.
 
+## What's in the box
+
+`atoms/` ships **358 recorded atoms across 27 sources** — wood, stone (dry and damped), two metals, ceramic, glass, leather, cardboard, cork, paper, a flamethrower. Every one is named with its axis coordinates, so `atom-mix` can use them straight out of a clone. See [library.md](docs/library.md) for the full index.
+
+Raw session recordings (~200MB) and rendered output stay out of the repo — the atoms are the distilled part, and the output is reproducible from atoms + parameters.
+
 ## Docs
 
+- [Library index](docs/library.md) — every source, its axes, and where it came from (auto-generated)
+- [Composition notes](docs/composition.md) — **the hard-won part**: why "heavier" needs a new low layer rather than ducking the others, why shatter is sparse-then-dense, why per-file normalization kills your force axis (Chinese)
 - [录制说明](docs/recording-guide.md) — how to record so the tooling can read it (Chinese)
 - [Schema](docs/schema.md) — atom metadata, axes, naming (Chinese)
 
