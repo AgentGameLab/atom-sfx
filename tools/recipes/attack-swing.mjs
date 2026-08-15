@@ -3,7 +3,11 @@
  * 配方：棋门遁甲三种普通攻击的挥击音（attack-thrust / slash / blunt）
  *
  *   node tools/recipes/attack-swing.mjs <输出目录>
- *   node tools/normalize-loudness.mjs <输出目录> --lufs -14   ← 跑完必须归一
+ *   node tools/normalize-loudness.mjs <输出目录> --lufs -23   ← 跑完必须归一
+ *
+ * -23 不是 -14：起手是**过程音**，要比命中轻一档。照搬命中音的 -14 会做出
+ * RMS -15~-17 的挥击声，比整条命中链（piece-impact + hit-melee ≈ -18.6）还响
+ * 4dB，听感是"发力在挥、落点没劲"。-23 落在 hit-melee(-26.3) 同档。
  *
  * 配方 = 一次交付的具体参数，不是通用工具。留着是为了可复现和照抄结构，
  * 换一批武器就复制一份改 BATCH，不要试图把它参数化成 CLI。
