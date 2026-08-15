@@ -123,14 +123,14 @@ engine that picks randomly from a variant pool.
 
 ## What's in the box
 
-`atoms/` ships **358 recorded atoms across 27 sources** — wood, stone (dry and damped), two metals, ceramic, glass, leather, cardboard, cork, paper, a flamethrower. Every one is named with its axis coordinates, so `atom-mix` can use them straight out of a clone. See [library.md](docs/library.md) for the full index.
+`atoms/` ships **374 atoms across 32 sources** — wood, stone (dry and damped), two metals, ceramic, glass, leather, cardboard, cork, paper, a flamethrower, plus a few generated ones for what a kitchen can't produce (fire, wind, water, a creature growl). Every one is named with its axis coordinates, so `atom-mix` can use them straight out of a clone. See [library.md](docs/library.md) for the full index.
 
 Raw session recordings (~200MB) and rendered output stay out of the repo — the atoms are the distilled part, and the output is reproducible from atoms + parameters.
 
 ## Docs
 
 - [Library index](docs/library.md) — every source, its axes, and where it came from (auto-generated)
-- [Composition notes](docs/composition.md) — **the hard-won part**: why "heavier" needs a new low layer rather than ducking the others, why shatter is sparse-then-dense, why per-file normalization kills your force axis (Chinese)
+- [Composition notes](docs/composition.md) — **the hard-won part**: why "heavier" needs a new low layer rather than ducking the others, why shatter is sparse-then-dense, why generated material can fill a gap but never form an axis, why per-file normalization kills your force axis (Chinese)
 - [录制说明](docs/recording-guide.md) — how to record so the tooling can read it (Chinese)
 - [Schema](docs/schema.md) — atom metadata, axes, naming (Chinese)
 

@@ -1,7 +1,7 @@
 # 素材库索引
 
 > 自动生成：`node tools/gen-library.mjs`。改了 `atoms/` 就重跑。
-> 共 **358** 个原子 / **27** 个 source。
+> 共 **374** 个原子 / **32** 个 source。
 
 文件名即元数据：`<source>__<technique>__<轴>...__<variant>.wav`。
 轴的取值来自录制时的受控变量（力度 / 落点 / 速度 / 材质状态…），命名规范见 [schema.md](schema.md)。
@@ -32,9 +32,14 @@
 | `seal` | press | f1 · f2 · f3 | 7 | 印章落下按压。软木平底按纸，两档力度（marker 之前那下是试按） |
 | `nail_clipper` | snap_close | size_large · size_small | 6 | 指甲刀合盖，金属碰撞+机械结构。大/小两个，不分力度 |
 | `magnet_lid` | close | — | 5 | 塑料磁吸盖吸合的关闭声。不分力度，多录几遍 |
+| `metal_screech` | scrape | — | 4 |  |
+| `paper_burn` | crackle | — | 4 |  |
+| `air_slit` | hiss | — | 3 |  |
+| `air_whoosh` | burst | — | 3 |  |
 | `paper` | flatten | — | 3 | 手掌铺平纸张。小天点名也可用作翻页类。三个变体动作略不同（渐进抹平/拍平/推平） |
 | `scroll` | unroll | — | 3 | 卷轴展开三段。第一段小天点名较好（1.5s，比后两段响 11dB） |
 | `flamethrower` | burst | src_real f1 · src_real f2 | 2 | 真实喷火器。计划小/中/大三段，第三段没气了没录成 |
+| `water_trickle` | flow | — | 2 |  |
 
 ## 怎么用
 

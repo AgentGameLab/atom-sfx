@@ -1,0 +1,3 @@
+{ "source": "_suno_batch1", "technique": "generated",
+  "note": "Suno 生成素材首批（2026-08-13）。prompt 一律 <简单描述> + dry recording, close mic, no music。已切成原子并归一：air_slit(风穿窄缝，4.2s 那份含两次吹已分切) / air_whoosh(短促气流) / paper_burn(符纸燃烧，从长段取三处稳定区) / water_trickle(水流) / metal_screech(金属长嘶鸣)。火焰组 σ 6.0dB 太散未入库。教训：prompt 描述的必须是单一成分——原 6 号 'quick whoosh into crackle' 是复合事件，已拆成 paper_burn + air_whoosh 两条",
+  "groups": [] }
