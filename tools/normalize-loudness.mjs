@@ -18,7 +18,8 @@
  */
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, renameSync, unlinkSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { join, extname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ff = (args) => spawnSync('ffmpeg', args, { maxBuffer: 1 << 26 });
 
@@ -31,8 +32,9 @@ export function measureLufs(file) {
   return v == null || v <= -70 ? null : v;
 }
 
-/** 宽带 RMS（dBFS）。LUFS 测不出时的退路 */
-function measureRms(file) {
+/** 宽带 RMS（dBFS）。LUFS 测不出时的退路 —— 导出给别的脚本复用：
+ *  短瞬态素材（<400ms）ebur128 一律测不出，每个脚本各写一遍必漏掉这个 fallback */
+export function measureRms(file) {
   const r = ff(['-v', 'info', '-i', file, '-af', 'astats=measure_perchannel=none', '-f', 'null', '-']);
   const m = /RMS level dB:\s*(-?[\d.]+)/.exec(r.stderr.toString());
   return m ? Number(m[1]) : null;
@@ -105,31 +107,36 @@ export function normalizeOne(src, out, { lufs = -18, ratio = null, quality = 5 }
 }
 
 // ── CLI ──
-const argv = process.argv.slice(2);
-if (!argv.length) {
-  console.log('用法：node tools/normalize-loudness.mjs <in|dir> [out] [--lufs -18] [--ratio 2.5] [--in-place]');
-  process.exit(0);
-}
-const flag = (n, d) => {
-  const i = argv.indexOf(`--${n}`);
-  return i >= 0 ? Number(argv[i + 1]) : d;
-};
-const inPlace = argv.includes('--in-place');
-const lufs = flag('lufs', -18);
-const ratio = argv.includes('--ratio') ? flag('ratio', null) : null;
-const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--') && !isNaN(Number(a))));
-const [target, outArg] = positional;
+// 必须守卫：本文件导出 measureLufs/measureRms 供别的脚本复用，没有这道门
+// import 的瞬间下面的 CLI 就会拿调用方的 argv 跑起来，把人家的目录归一一遍
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  const argv = process.argv.slice(2);
+  if (!argv.length) {
+    console.log('用法：node tools/normalize-loudness.mjs <in|dir> [out] [--lufs -18] [--ratio 2.5] [--in-place]');
+    process.exit(0);
+  }
+  const flag = (n, d) => {
+    const i = argv.indexOf(`--${n}`);
+    return i >= 0 ? Number(argv[i + 1]) : d;
+  };
+  const inPlace = argv.includes('--in-place');
+  const lufs = flag('lufs', -18);
+  const ratio = argv.includes('--ratio') ? flag('ratio', null) : null;
+  const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[i - 1].startsWith('--') && !isNaN(Number(a))));
+  const [target, outArg] = positional;
 
-const isDir = existsSync(target) && !extname(target);
-const files = isDir
-  ? readdirSync(target).filter((f) => /\.(ogg|mp3|wav)$/i.test(f) && !f.startsWith('_')).map((f) => join(target, f))
-  : [target];
+  const isDir = existsSync(target) && !extname(target);
+  const files = isDir
+    ? readdirSync(target).filter((f) => /\.(ogg|mp3|wav)$/i.test(f) && !f.startsWith('_')).map((f) => join(target, f))
+    : [target];
 
-console.log(`目标 ${lufs} LUFS · 压缩比 ${ratio}:1 · ${files.length} 个文件\n`);
-for (const f of files) {
-  const out = isDir || inPlace ? f.replace(/\.[^.]+$/, '.__out.ogg') : outArg;
-  const { before, gain, after, mode } = normalizeOne(f, out, { lufs, ratio });
-  if (isDir || inPlace) renameSync(out, f.replace(/\.[^.]+$/, '.ogg'));
-  const name = f.split(/[\\/]/).pop();
-  console.log(`  ${name.padEnd(26)} ${before?.toFixed(1).padStart(6)} → ${after?.toFixed(1).padStart(6)} ${mode.padEnd(4)} (补 ${gain >= 0 ? '+' : ''}${gain.toFixed(1)}dB)`);
+  console.log(`目标 ${lufs} LUFS · 压缩比 ${ratio}:1 · ${files.length} 个文件\n`);
+  for (const f of files) {
+    const out = isDir || inPlace ? f.replace(/\.[^.]+$/, '.__out.ogg') : outArg;
+    const { before, gain, after, mode } = normalizeOne(f, out, { lufs, ratio });
+    if (isDir || inPlace) renameSync(out, f.replace(/\.[^.]+$/, '.ogg'));
+    const name = f.split(/[\\/]/).pop();
+    console.log(`  ${name.padEnd(26)} ${before?.toFixed(1).padStart(6)} → ${after?.toFixed(1).padStart(6)} ${mode.padEnd(4)} (补 ${gain >= 0 ? '+' : ''}${gain.toFixed(1)}dB)`);
+  }
 }
