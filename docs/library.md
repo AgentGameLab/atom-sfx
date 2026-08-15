@@ -1,7 +1,7 @@
 # 素材库索引
 
 > 自动生成：`node tools/gen-library.mjs`。改了 `atoms/` 就重跑。
-> 共 **374** 个原子 / **32** 个 source。
+> 共 **392** 个原子 / **33** 个 source。
 
 文件名即元数据：`<source>__<technique>__<轴>...__<variant>.wav`。
 轴的取值来自录制时的受控变量（力度 / 落点 / 速度 / 材质状态…），命名规范见 [schema.md](schema.md)。
@@ -15,6 +15,7 @@
 | `metal_box` | lid_close / lid_open / strike | f1 · side_1 f1 · side_1 f2 …共 7 | 25 | 大铁盒，声音偏沉像钟。两个面各三档敲击 + 开盖 + 关盖 |
 | `stone_slab` | piece_drop | damp_dry f1 · damp_dry f2 · damp_dry f3 …共 6 | 20 | 棋子落石板（干）。开门青石用。三档力度，marker 前那档是档1 |
 | `playing_card` | draw / shuffle | v1 · v2 | 19 | 真实卡牌。抽一张出来（多版本）/ 洗牌（两版本） |
+| `belly` | hand | hit_bright f_1 · hit_bright f_2 · hit_bright f_3 …共 6 | 18 | 人体腹部手击。前批亮（有接触噪声，中高频足），后批闷（近乎纯低频，小力度时高频比低频低 14dB）。两批力度轴各自成立，均复现『越重高频涨得越快』。后批 = 干净的低频 body  |
 | `cardboard` | pull_out / tear | spd1 · spd2 · spd3 | 14 | 硬纸板抽出，速度慢/中/快。软木塞拔出实测无声（摩擦系数低+弹性回弹），改纸板纤维撕扯。渐进摩擦包络：attack 122-429ms |
 | `cleaver` | tap | — | 13 | 菜刀金属敲击。无力度分档，13 个变体。清脆干净，attack 4-15ms |
 | `blade_wood` | scrape | spd1 · spd2 · spd3 | 9 | 锋利金属刮过木头，慢/中/快三档速度 |
