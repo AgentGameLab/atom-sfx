@@ -17,5 +17,8 @@ mix-report.json
 !atoms/**/*.wav
 !atoms/*.wav
 
+# library/ 同理：外部 CC0 采样，配方直接引用，clone 下来要能跑
+!library/**/*.wav
+
 node_modules/
 .DS_Store

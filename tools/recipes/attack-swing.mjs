@@ -55,14 +55,16 @@ function render(name, layers, { fadeOutAt, total, shift = 0 }) {
 
 const BATCH = {
   // 戳刺：最短最亮，尖峰后骤停。w_sharp 高通掉身体，只留锐气 + 一点刃刮
+  // thrust 的峰提前到 280ms（其余两种是 340ms）：戳刺是直线突刺，武器速度在
+  // 动作早期就到顶并保持，破空峰早于挥砍的弧线末端。三种共用一个峰位反而不对
   'attack-thrust': { fadeOutAt: 360, total: 410, variants: [
-    { shift: 0,  layers: [
+    { shift: -60,  layers: [
       { file: 'breath_whoosh__mouth__w_sharp__01', rev: 1, tempo: 1.25, gain: 0, delayMs: 130, hp: 300 },
       { file: 'blade_wood__scrape__spd2__01', rev: 1, tempo: 1.3, gain: -7, delayMs: 150, hp: 2500 } ] },
-    { shift: 0,  layers: [
+    { shift: -60,  layers: [
       { file: 'breath_whoosh__mouth__w_sharp__02', rev: 1, tempo: 1.25, gain: 0, delayMs: 130, hp: 300 },
       { file: 'blade_wood__scrape__spd2__02', rev: 1, tempo: 1.3, gain: -7, delayMs: 150, hp: 2500 } ] },
-    { shift: 20, layers: [
+    { shift: -40, layers: [
       { file: 'breath_whoosh__mouth__w_sharp__01', rev: 1, tempo: 1.3, gain: 0, delayMs: 130, hp: 300 },
       { file: 'blade_wood__scrape__spd2__03', rev: 1, tempo: 1.3, gain: -7, delayMs: 150, hp: 2500 } ] },
   ] },
