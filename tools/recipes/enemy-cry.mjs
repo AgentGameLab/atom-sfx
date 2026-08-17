@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 配方：棋门遁甲敌人起手叫声（十个发声原型）
+ * 配方：棋门遁甲敌人起手叫声（十一个发声原型）
  *
  *   node tools/recipes/enemy-cry.mjs <输出目录> [Sonniss根目录]
  *   默认 Sonniss 根 = E:/SoundLibrary/sonniss-gdc-2026
@@ -95,6 +95,12 @@ const PROTO = [
   { name: 'cry-boar', mode: 'conv', gain: 0.5,
     src: ['344 Audio - Dinosaurs Vol. 2/ANMLRept_Large Herbivore Roar 01_344 Audio_Dinosaurs Vol 2.wav', 'roar', 7.4, 1.10, 0.85],
     ir: ['wood_block__strike__f3__01.wav', 'wood3'] },
+  // 陵俑：陶俑 —— 跟铜额卒同一条声源，但**陶是身体所以卷积**（铜额卒只有额头是
+  // 金属，是表面所以叠加）。这对是判据最干净的正反例。
+  // 实测低频砍 16dB、重心上移到 1.2-2.4k：薄、脆、没有金属的厚度。
+  { name: 'cry-clay', mode: 'conv', gain: -3.8,
+    src: ['Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4.wav', 'orc_clay', 0.30, 1.15, 0.90],
+    ir: ['ceramic_plate__tap__f2__01.wav', 'ceramic_f2'] },
 ];
 
 // 叠加型：材质是表面不是身体
@@ -103,7 +109,7 @@ const LAYERED = [
   { name: 'cry-tieling', srcGain: -4.4, layGain: -8.4, layDelay: 40,
     src: ['344 Audio - Dinosaurs Vol. 1/ANMLRept_Raptor Flair_344 Audio_Dinosaurs.wav', 'raptor', 0.05, 1.00, 0.75],
     lay: 'metal_screech__scrape__01.wav', layTrim: [0.3, 1.0], layFade: 0.45 },
-  // 人形：兽人蓄力攻击 + 金属板。铜额卒/砮魂/陵俑（陵俑该换 ceramic_plate）
+  // 人形：兽人蓄力攻击 + 金属板。铜额卒/砮魂（陵俑走 cry-clay，陶要卷积不能叠加）
   { name: 'cry-humanoid', srcGain: -13.2, layGain: -20.2, layDelay: 30,
     src: ['Epic Stock Media - Humanoid Creatures Vol 4 - Monstrous and Undead Creature Vocalization Sound Sets/CREAHmn_Designed Orc Male Attack Long Heavy Hit Charged Up 03_ESM_HC4.wav', 'orc', 0.30, 1.15, 0.90],
     lay: 'metal_board2__piece_drop__r_center__01.wav', layTrim: null, layFade: null },
@@ -175,5 +181,5 @@ for (const p of LAYERED) {
   console.log('  cry-ghost.ogg  (长混响 + 倒放前导)');
 }
 
-console.log(`\n十个原型写到 ${OUT}，全部 RMS ≈ ${TARGET_RMS}`);
-console.log('铺到具体敌人：同原型内换 IR 材质 + 变调区分个体（罴卒用 chessboard 更闷更大只、陵俑换 ceramic_plate）');
+console.log(`\n十一个原型写到 ${OUT}，全部 RMS ≈ ${TARGET_RMS}`);
+console.log('铺到具体敌人：同原型内换 IR 材质 + 变调区分个体（罴卒用 chessboard 更闷更大只）');
