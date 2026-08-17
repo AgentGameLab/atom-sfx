@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 配方：棋门遁甲敌人起手叫声（七个发声原型）
+ * 配方：棋门遁甲敌人起手叫声（十个发声原型）
  *
  *   node tools/recipes/enemy-cry.mjs <输出目录> [Sonniss根目录]
  *   默认 Sonniss 根 = E:/SoundLibrary/sonniss-gdc-2026
@@ -38,6 +38,8 @@ import { tmpdir } from 'node:os';
 
 const OUT = process.argv[2];
 const SONNISS = process.argv[3] ?? 'E:/SoundLibrary/sonniss-gdc-2026';
+// 2024 精选（七条按缺口单文件下的，47MB，不是整包）。来源见该目录的 SOURCE.md
+const PICKS = process.argv[4] ?? 'E:/SoundLibrary/sonniss-gdc-2024-picks';
 if (!OUT) { console.error('用法：node tools/recipes/enemy-cry.mjs <输出目录> [Sonniss根]'); process.exit(1); }
 mkdirSync(OUT, { recursive: true });
 // 中间产物放系统临时目录，别脏了输出目录（ffmpeg 刚写的文件在 Windows 上可能
@@ -58,6 +60,14 @@ function source(rel, name, ss, dur, fadeOutAt) {
   ff(['-i', join(SONNISS, rel), '-ar', '48000', '-ac', '1', '-c:a', 'pcm_f32le', raw]);
   ff(['-ss', String(ss), '-t', String(dur), '-i', raw, '-af',
     `asetpts=N/SR/TB,afade=t=in:st=0:d=0.02,afade=t=out:st=${fadeOutAt}:d=0.22`,
+    '-ar', '48000', '-ac', '1', '-c:a', 'pcm_f32le', cut]);
+  return cut;
+}
+/** 声源（2024 精选目录，已经是 48k 单声道，只截取） */
+function pick(file, name, ss, dur, fadeOutAt) {
+  const cut = join(TMP, `${name}.wav`);
+  ff(['-ss', String(ss), '-t', String(dur), '-i', join(PICKS, file), '-af',
+    `asetpts=N/SR/TB,afade=t=in:st=0:d=0.02,afade=t=out:st=${fadeOutAt}:d=0.25`,
     '-ar', '48000', '-ac', '1', '-c:a', 'pcm_f32le', cut]);
   return cut;
 }
@@ -121,6 +131,35 @@ for (const p of LAYERED) {
   console.log(`  ${p.name}.ogg  (叠加)`);
 }
 
+// ── 禽类：真猛禽录音（Red Kite 红鸢）──────────────────────
+// Raptor Flair 是爬行类的替代品，红鸢是真猛禽，对得多。峰在原素材 93% 处（最后才叫）。
+// 天禽是 boss：同一条录音降 4 个半音就变成更大的鸟 —— 跟锣换力度档同一个道理，
+// 不要靠加增益制造"更大只"。
+{
+  const s2 = pick('redkite.wav', 'kite', 18.55, 1.0, 0.72);
+  ff(['-i', s2, '-i', ir('ceramic_plate__tap__f2__01.wav', 'ceramic'), '-filter_complex',
+    `[0:a][1:a]afir=dry=3:wet=7:maxir=0.3,asetpts=N/SR/TB,volume=-22.8dB,alimiter=limit=0.94[o]`,
+    '-map', '[o]', ...enc, join(OUT, 'cry-bird.ogg')]);
+  console.log('  cry-bird.ogg  (毕方 · 猛禽 ⊛ 瓷盘)');
+  const rate = 48000 * Math.pow(2, -4 / 12);
+  ff(['-i', s2, '-i', 'atoms/wood_block__strike__f3__01.wav', '-filter_complex',
+    `[0:a]asetrate=${rate},aresample=48000[a];[a][1:a]afir=dry=3:wet=7:maxir=0.3,`
+    + `asetpts=N/SR/TB,volume=-13.6dB,alimiter=limit=0.94[o]`,
+    '-map', '[o]', ...enc, join(OUT, 'cry-bird-boss.ogg')]);
+  console.log('  cry-bird-boss.ogg  (天禽·禽王 · 降 4 半音 ⊛ 木块)');
+}
+
+// ── 鬼类前摇短版 ─────────────────────────────────────────
+// cry-ghost 那条 3.17s 只能当出场音，这条 1.26s、峰在 280ms，有明确起手点能当预警。
+// 声源换成 Haunted Metal 的金属哀号（比死亡哨更"结构性"，适合造物而非亡魂）。
+{
+  const s2 = pick('hm2_wail.wav', 'wail', 12.9, 1.0, 0.70);
+  ff(['-i', s2, '-af',
+    'aecho=0.85:0.8:120|260:0.35|0.2,highshelf=g=3:f=3500,volume=-7.5dB,alimiter=limit=0.94',
+    ...enc, join(OUT, 'cry-ghost-short.ogg')]);
+  console.log('  cry-ghost-short.ogg  (鬼类前摇 · 金属哀号)');
+}
+
 // 鬼：阿兹特克死亡哨 + 倒放前导 + 长混响。魍魉/磷火/虚子
 // 小天听审：不卷积（卷了就闷）、要长混响给空间、要倒放前导给"从远处飘来"。
 // ⚠️ 3.17s 且峰在 1180ms，**适合出场音或持续状态，不适合攻击前摇预警** ——
@@ -136,5 +175,5 @@ for (const p of LAYERED) {
   console.log('  cry-ghost.ogg  (长混响 + 倒放前导)');
 }
 
-console.log(`\n七个原型写到 ${OUT}，全部 RMS ≈ ${TARGET_RMS}`);
+console.log(`\n十个原型写到 ${OUT}，全部 RMS ≈ ${TARGET_RMS}`);
 console.log('铺到具体敌人：同原型内换 IR 材质 + 变调区分个体（罴卒用 chessboard 更闷更大只、陵俑换 ceramic_plate）');
