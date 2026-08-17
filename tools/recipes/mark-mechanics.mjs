@@ -20,13 +20,17 @@
  * 平均值低才是它该有的形状。原定 -19，硬压到那个数就得把冲击感压平 —— 那是
  * 用数字换手感。这条上峰值比 RMS 更能代表听感。
  *
- * ── 机制约束 ─────────────────────────────────────────────
- * **`fuhuo-blast` 必须短（0.6s）**。combat.ts 的 fuhuoDetonated 带的是
- * `detonations` 数组 —— 多颗可以同时炸，引擎侧按放置顺序错峰复播同一个文件。
- * 单颗做长了三颗连锁就糊成一团。这个时长不是听感选择，是机制推出来的。
+ * ── 一条被推翻的约束（留着当教训）────────────────────────
+ * 初版把 `fuhuo-blast` 卡在 0.6s，理由是"连锁复播会糊"。**这个约束是错的**：
+ * 爆炸的连锁本来就该是糊的（一片轰鸣），拖长的低频尾巴叠起来反而更像连锁。
+ * 现在 1.5s，小天听审"0.6s 不带感"。
  *
- * `zuyin-echo` 同理会被 zuyinPulsed（万军呐喊，全场阵印一起脉冲）复播，
- * 但它 1.1s 偏长 —— 如果 pulsed 听起来糊，接线侧应该只播一次而不是每印一次。
+ * 真正的时长约束来自**素材**不是机制：烟花录音的爆点间隔 1.0s、单次衰减
+ * 0.9s（9.0s -6.6dB → 9.8s -34.5dB → 10.0s 下一发），截超 0.95s 就吃到
+ * 下一次爆炸。所以取 0.95s 素材 + aecho 人工延尾到 1.5s。
+ *
+ * `zuyin-echo` 会被 zuyinPulsed（万军呐喊，全场阵印一起脉冲）复播 —— 那种
+ * 情况接线侧应该**只播一次**而不是每印一次。
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
@@ -35,6 +39,9 @@ import { tmpdir } from 'node:os';
 
 const OUT = process.argv[2];
 const PICKS = process.argv[3] ?? 'E:/SoundLibrary/sonniss-gdc-2024-picks';
+// 烟花爆炸来自 GDC 2026 包（Ivo Vicic - Fireworks FX），预转成 48k 单声道后
+// 放在 picks 目录，因为原文件 24s 立体声每次重跑都要重新解码
+const PICKS_FW = process.argv[4] ?? PICKS;
 if (!OUT) { console.error('用法：node tools/recipes/mark-mechanics.mjs <输出目录> [2024精选目录]'); process.exit(1); }
 mkdirSync(OUT, { recursive: true });
 const TMP = join(tmpdir(), 'mark-mech-work');
@@ -62,15 +69,18 @@ console.log('  zuyin-place.ogg   -24  盖印 + 盘面落定');
 // ── 阵印回响：同一枚印，但这次是它在响 ─────────────────────
 // 倒放的 seal 当前导（气聚拢，方法论第四条），正放的 seal 当成型，
 // 长混响给"回响"。共享 seal 音色 = 玩家能听出是同一枚印。
-// 低频脉冲（框鼓低通）对应它给的格挡 —— 有护体的分量。
+// 低频脉冲（geodrone 低通）对应它给的格挡 —— 有护体的分量。
+// ⚠️ 反射必须**短**（45/95ms = 房间感）。初版用 180/420ms，小天听审"不能多下，
+// 只能是一下" —— 那个延迟量听起来是三次敲击不是一次回响。前导也从 -3 降到
+// -8dB：它该是"气"不该被听成独立的一下。
 ff(['-i', A('seal__press__f3__01.wav'), '-i', A('seal__press__f2__01.wav'),
   '-i', join(PICKS, 'geodrone.wav'), '-filter_complex',
-  `[0:a]areverse,atrim=0:0.30,asetpts=N/SR/TB,afade=t=in:st=0:d=0.26,volume=-3dB[pre];`
+  `[0:a]areverse,atrim=0:0.30,asetpts=N/SR/TB,afade=t=in:st=0:d=0.28,volume=-8dB[pre];`
   + `[1:a]adelay=300|300,volume=0dB[main];`
   + `[2:a]atrim=4.0:4.9,asetpts=N/SR/TB,lowpass=f=260,volume=-4dB,`
   + `afade=t=in:st=0:d=0.1,afade=t=out:st=0.55:d=0.35,adelay=290|290[sub];`
   + `[pre][main][sub]amix=inputs=3:normalize=0,asetpts=N/SR/TB,`
-  + `aecho=0.85:0.8:180|420:0.4|0.22,atrim=0:1.15,volume=-0.2dB,alimiter=level=disabled:limit=0.94[o]`,
+  + `aecho=0.85:0.8:45|95:0.28|0.16,atrim=0:1.15,volume=0.5dB,alimiter=level=disabled:limit=0.94[o]`,
   '-map', '[o]', ...enc, join(OUT, 'zuyin-echo.ogg')]);
 console.log('  zuyin-echo.ogg    -20  倒放前导 + 同枚印 + 低频脉冲 + 混响');
 
@@ -88,22 +98,28 @@ ff(['-i', A('cork__stab__f1__01.wav'), '-i', A('paper_burn__crackle__01.wav'),
   '-map', '[o]', ...enc, join(OUT, 'fuhuo-plant.ogg')]);
 console.log('  fuhuo-plant.ogg   -28  戳入 + 药纸（最轻，隐秘动作）');
 
-// ── 伏火爆炸：低频 boom + 药纸炸开 ─────────────────────────
-// hm1_boom 给低频冲击（<150Hz -28.7，全库最沉的现成素材），
-// paper_burn + plastic_bag 给火药的碎裂噼啪。共享 paper_burn = 跟埋设呼应。
-// 0.6s 硬约束：连锁复播（见文件头机制约束）。
-// boom 的 crest 极大，必须先 acompressor 收瞬态再补增益，否则瞬态穿透 limiter
-// 顶到 +2.8dB（实测）。这跟 normalize-loudness 的第二个坑是同一件事。
-ff(['-i', join(PICKS, 'hm1_boom.wav'), '-i', A('paper_burn__crackle__01.wav'),
-  '-i', A('plastic_bag__hand_rub__01.wav'), '-filter_complex',
-  `[0:a]atrim=0:0.6,asetpts=N/SR/TB,volume=0dB[boom];`
-  + `[1:a]atrim=0.6:1.1,asetpts=N/SR/TB,volume=-6dB,afade=t=out:st=0.3:d=0.2[fire];`
-  + `[2:a]atrim=0:0.35,asetpts=N/SR/TB,highpass=f=1500,volume=-9dB,`
-  + `afade=t=out:st=0.2:d=0.15,adelay=25|25[crack];`
-  + `[boom][fire][crack]amix=inputs=3:normalize=0,asetpts=N/SR/TB,atrim=0:0.6,`
-  + `afade=t=out:st=0.45:d=0.15,acompressor=threshold=-24dB:ratio=8:attack=1:release=80,volume=13.5dB,alimiter=level=disabled:limit=0.92[o]`,
+// ── 伏火爆炸：真烟花 + 人工延尾 ──────────────────────────
+// 声源换成真烟花录音（小天听审选的）：**伏火和烟花都是黑火药**，材质同源。
+// 之前用 hm1_boom 不行 —— 那是 "Cinematic Metallic Hit"，金属撞击不是爆炸，
+// 带明确金属音色。爆炸该是宽带噪声 + 低频冲击，起振 <5ms。
+//
+// 烟花是远距离录的，低频被距离吃掉（<150Hz 只有 -37.8），所以 bass +7dB 补回来。
+// aecho 三次反射（180/400/750ms）是**人工延尾** —— 真实爆炸在空间里有低频隆隆
+// 的回响，那正是"带感"的来源，远录丢了这部分。lowpass 7k：远处回响高频少。
+//
+// paper_burn 那层是跟 fuhuo-plant 共享的药纸质感。
+ff(['-i', join(PICKS_FW, 'fw.wav'), '-i', A('paper_burn__crackle__01.wav'),
+  '-filter_complex',
+  `[0:a]atrim=8.95:9.90,asetpts=N/SR/TB,bass=g=7:f=110,volume=8dB[boom];`
+  + `[1:a]atrim=0.6:1.1,asetpts=N/SR/TB,highpass=f=1500,volume=-12dB,`
+  + `afade=t=out:st=0.3:d=0.2,adelay=40|40[fire];`
+  + `[boom][fire]amix=inputs=2:normalize=0,asetpts=N/SR/TB,`
+  + `aecho=0.9:0.85:180|400|750:0.40|0.25|0.15,lowpass=f=7000,`
+  + `atrim=0:1.5,afade=t=out:st=1.15:d=0.35,`
+  + `acompressor=threshold=-24dB:ratio=4:attack=1:release=90,volume=12dB,`
+  + `alimiter=level=disabled:limit=0.9[o]`,
   '-map', '[o]', ...enc, join(OUT, 'fuhuo-blast.ogg')]);
-console.log('  fuhuo-blast.ogg   -19  低频 boom + 药纸炸开 + 噼啪（0.6s 为连锁）');
+console.log('  fuhuo-blast.ogg   -20  真烟花 + 人工延尾 1.5s');
 
 rmSync(TMP, { recursive: true, force: true });
 console.log('\n四条 = 两对，每对共享一层：阵印共享 seal / 伏火共享 paper_burn');
