@@ -20,6 +20,12 @@
  * 平均值低才是它该有的形状。原定 -19，硬压到那个数就得把冲击感压平 —— 那是
  * 用数字换手感。这条上峰值比 RMS 更能代表听感。
  *
+ * ── 同一个错犯了两次：延尾不能用离散回声 ──────────────────
+ * `zuyin-echo` 初版 aecho 180/420ms → 听成三次敲击（"只能是一下"）。
+ * `fuhuo-blast` 初版 aecho 180/400/750ms → 听成三声爆炸，而且连锁时 ×N。
+ * **需要"长"的时候，要的是连续衰减不是离散反射。** 前者收到 45/95ms 当房间，
+ * 后者改用低频 rumble 层撑长度。判据：逐 150ms 量峰值必须单调无第二峰。
+ *
  * ── 一条被推翻的约束（留着当教训）────────────────────────
  * 初版把 `fuhuo-blast` 卡在 0.6s，理由是"连锁复播会糊"。**这个约束是错的**：
  * 爆炸的连锁本来就该是糊的（一片轰鸣），拖长的低频尾巴叠起来反而更像连锁。
@@ -98,28 +104,37 @@ ff(['-i', A('cork__stab__f1__01.wav'), '-i', A('paper_burn__crackle__01.wav'),
   '-map', '[o]', ...enc, join(OUT, 'fuhuo-plant.ogg')]);
 console.log('  fuhuo-plant.ogg   -28  戳入 + 药纸（最轻，隐秘动作）');
 
-// ── 伏火爆炸：真烟花 + 人工延尾 ──────────────────────────
-// 声源换成真烟花录音（小天听审选的）：**伏火和烟花都是黑火药**，材质同源。
+// ── 伏火爆炸：真烟花 + 连续低频 rumble 延尾 ────────────────
+// 声源是真烟花录音（小天听审选的）：**伏火和烟花都是黑火药**，材质同源。
 // 之前用 hm1_boom 不行 —— 那是 "Cinematic Metallic Hit"，金属撞击不是爆炸，
-// 带明确金属音色。爆炸该是宽带噪声 + 低频冲击，起振 <5ms。
+// 带明确金属音色。爆炸该是宽带噪声 + 低频冲击。
 //
-// 烟花是远距离录的，低频被距离吃掉（<150Hz 只有 -37.8），所以 bass +7dB 补回来。
-// aecho 三次反射（180/400/750ms）是**人工延尾** —— 真实爆炸在空间里有低频隆隆
-// 的回响，那正是"带感"的来源，远录丢了这部分。lowpass 7k：远处回响高频少。
+// ⚠️ **延尾绝不能用长 aecho**。初版用 180/400/750ms 三次反射，听起来就是
+// **三声爆炸**（小天：「blast 也只有一声啊，会有多个爆炸发生」）—— 游戏里多颗
+// 连锁时每颗播一次，三颗就是九声。这跟 zuyin-echo 那条犯的是同一个错。
 //
+// 正确做法是**连续的低频 rumble**：爆炸的隆隆是低频在空间里持续衰减，不是
+// 离散回声。geodrone 低通 200Hz、快起振（20ms）+ 长衰减（1.15s）叠在爆点上。
+// aecho 只留 25/55ms 的极短反射当房间感 —— 那个延迟量不会被听成第二声。
+//
+// 验证方式：逐 150ms 量峰值，必须**单调衰减、无第二个峰**。现在是
+// 0.15s -4.1 → 0.5s -9.7 → 1.1s -19.9 → 1.3s -62.7。
+//
+// 烟花远距离录的低频被距离吃掉（<150Hz 只有 -37.8），bass +7dB 补回来。
 // paper_burn 那层是跟 fuhuo-plant 共享的药纸质感。
-ff(['-i', join(PICKS_FW, 'fw.wav'), '-i', A('paper_burn__crackle__01.wav'),
-  '-filter_complex',
+ff(['-i', join(PICKS_FW, 'fw.wav'), '-i', join(PICKS, 'geodrone.wav'),
+  '-i', A('paper_burn__crackle__01.wav'), '-filter_complex',
   `[0:a]atrim=8.95:9.90,asetpts=N/SR/TB,bass=g=7:f=110,volume=8dB[boom];`
-  + `[1:a]atrim=0.6:1.1,asetpts=N/SR/TB,highpass=f=1500,volume=-12dB,`
+  + `[1:a]atrim=2.0:3.45,asetpts=N/SR/TB,lowpass=f=200,volume=-9dB,`
+  + `afade=t=in:st=0:d=0.02,afade=t=out:st=0.08:d=1.15,adelay=50|50[rumble];`
+  + `[2:a]atrim=0.6:1.1,asetpts=N/SR/TB,highpass=f=1500,volume=-12dB,`
   + `afade=t=out:st=0.3:d=0.2,adelay=40|40[fire];`
-  + `[boom][fire]amix=inputs=2:normalize=0,asetpts=N/SR/TB,`
-  + `aecho=0.9:0.85:180|400|750:0.40|0.25|0.15,lowpass=f=7000,`
-  + `atrim=0:1.5,afade=t=out:st=1.15:d=0.35,`
-  + `acompressor=threshold=-24dB:ratio=4:attack=1:release=90,volume=12dB,`
+  + `[boom][rumble][fire]amix=inputs=3:normalize=0,asetpts=N/SR/TB,`
+  + `aecho=0.9:0.9:25|55:0.20|0.10,atrim=0:1.5,afade=t=out:st=1.15:d=0.35,`
+  + `acompressor=threshold=-24dB:ratio=4:attack=1:release=90,volume=10.5dB,`
   + `alimiter=level=disabled:limit=0.9[o]`,
   '-map', '[o]', ...enc, join(OUT, 'fuhuo-blast.ogg')]);
-console.log('  fuhuo-blast.ogg   -20  真烟花 + 人工延尾 1.5s');
+console.log('  fuhuo-blast.ogg   -20  真烟花 + 连续 rumble 延尾 1.5s（一声）');
 
 rmSync(TMP, { recursive: true, force: true });
 console.log('\n四条 = 两对，每对共享一层：阵印共享 seal / 伏火共享 paper_burn');
