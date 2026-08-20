@@ -26,8 +26,15 @@
  * **减掉整体电平差**。响度目标是各自收敛的，整体高低不该算进形状偏差里 ——
  * 它单独报在「电平Δ」那一列，一眼能看出"只是响度不同"还是"形状变了"。
  *
- * ── 阈值 ────────────────────────────────────────────────────
- * 默认 1.5dB。经验：同一条链的可复现差异在 0.5dB 以内；超过 1.5dB 一定有
+ * ── 判定 ────────────────────────────────────────────────────
+ * **两边文件名对不上直接失败**（只想比交集用 `--allow-missing`）。不然「全改了
+ * 名的迁移」会以「比了 0 个文件、最大偏差 0.00dB」通过。基线该用「迁移前的
+ * 配方现跑一遍」的产物，不是听审留下的候选目录 —— 后者可能比配方旧好几轮。
+ *
+ * **孤立的单窗超差不判失败**，要连着两窗才算。孤立单窗多半是抵消凹口，
+ * 一层差 0.2dB 就能让凹口深浅差 1.5dB，两侧窗却完全对得上。
+ *
+ * 阈值默认 1.5dB。经验：同一条链的可复现差异在 0.5dB 以内；超过 1.5dB 一定有
  * 原因（配比错了 / 压缩器阈值没跟着挪 / 下混系数不同），别急着调参，先查。
  * 频带那边低于总能量 40dB 的档不参与判定 —— 那点能量听不见，而"相对总能量的
  * dB"在这种量级上会把毫无意义的差放大（锣的 40Hz 档在 -50dB，差 4dB 纯属噪声）。
@@ -42,6 +49,7 @@ const positional = argv.filter((a, i) => !a.startsWith('--') && !(i > 0 && argv[
 const [srcA, srcB] = positional;
 const TOL = Number(flag('tol', 1.5));
 const JSON_OUT = flag('json', null);
+const ALLOW_MISSING = argv.includes('--allow-missing');
 if (!srcA || !srcB) {
   console.error('用法：node tools/compare-shape.mjs <旧目录|旧文件> <新目录|新文件> [--tol 1.5] [--json out.json]');
   process.exit(1);
@@ -150,6 +158,17 @@ if (isDir(srcA) && isDir(srcB)) {
   if (onlyA.length) console.log(`⚠ 只在旧目录：${onlyA.join(' ')}`);
   if (onlyB.length) console.log(`⚠ 只在新目录：${onlyB.join(' ')}`);
   pairs = listA.filter((f) => setB.has(f)).sort().map((f) => [f, join(srcA, f), join(srcB, f)]);
+  // 文件名对不上 = 根本没在比。**必须失败**，否则「全改了名的迁移」会以
+  // 「比了 0 个文件、最大偏差 0.00dB」通过 —— 0820 迁 enemy-cry 时就撞到过：
+  // 旧目录是探索期的 A/B/C/E1… 命名，新产物是 cry-*，一条都没配上却 exit 0。
+  if ((onlyA.length || onlyB.length) && !ALLOW_MISSING) {
+    console.error(`\n✗ 两边文件名对不上（旧独有 ${onlyA.length} / 新独有 ${onlyB.length}），`
+      + `只有 ${pairs.length} 个配上。这不叫比过了。\n`
+      + `  基线该用「迁移前的配方现跑一遍」的产物，不是听审留下的候选目录`
+      + `（后者可能比配方旧好几轮）。确实只想比交集就加 --allow-missing。`);
+    process.exit(1);
+  }
+  if (!pairs.length) { console.error('✗ 没有可比的文件'); process.exit(1); }
 } else {
   pairs = [[basename(srcA), srcA, srcB]];
 }
@@ -170,11 +189,18 @@ for (const [name, fa, fb] of pairs) {
   let off = 0;
   for (const i of idx) off += eb[i] - ea[i];
   off = idx.length ? off / idx.length : 0;
-  let envMax = 0, envBad = 0, envAt = -1;
+  // 逐窗偏差。**孤立的单窗超差不判失败** —— 那多半是抵消凹口：两层在某一刻
+  // 部分反相，其中一层电平差 0.2dB 就能让凹口深浅差 1.5dB，而两侧窗完全对得上
+  // （0820 迁 lingma-appear：450ms 差 1.53dB，400/500ms 只差 0.2dB，听不出来）。
+  // 判定要求**连着**超差。
+  const dev = new Map();
+  for (const i of idx) dev.set(i, Math.abs(eb[i] - ea[i] - off));
+  let envMax = 0, envBad = 0, envAt = -1, notch = 0;
   for (const i of idx) {
-    const d = Math.abs(eb[i] - ea[i] - off);
-    if (d > TOL) envBad++;
+    const d = dev.get(i);
     if (d > envMax) { envMax = d; envAt = i; }
+    if (d <= TOL) continue;
+    if ((dev.get(i - 1) ?? 0) > TOL / 2 || (dev.get(i + 1) ?? 0) > TOL / 2) envBad++; else notch++;
   }
   const ba = bands(A), bb = bands(B);
   let bandMax = 0, bandAt = -1;
@@ -183,19 +209,21 @@ for (const [name, fa, fb] of pairs) {
     const d = Math.abs(bb[b] - ba[b]);
     if (d > bandMax) { bandMax = d; bandAt = b; }
   }
-  worst = Math.max(worst, envMax, bandMax);
-  const bad = envMax > TOL || bandMax > TOL;
+  worst = Math.max(worst, envBad ? envMax : 0, bandMax);
+  const bad = envBad > 0 || bandMax > TOL;
   console.log(`${(bad ? '✗ ' : '  ') + name.padEnd(24)} ${(lag / SR * 1000).toFixed(1).padStart(5)}ms `
     + `${off.toFixed(2).padStart(6)} ${envMax.toFixed(2).padStart(6)}@${String(envAt * 50).padStart(4)}ms `
-    + `${String(envBad).padStart(3)}/${String(idx.length).padStart(3)} `
+    + `${String(envBad).padStart(3)}/${String(idx.length).padStart(3)}${notch ? `+${notch}凹` : '   '} `
     + `${bandMax.toFixed(2).padStart(6)} (${bandAt < 0 ? '同' : CENTERS[bandAt]})`);
   report.push({
     file: name, lagMs: lag / SR * 1000, durDelta: (B.length - A.length) / SR, levelOffset: off,
-    envMax, envAtMs: envAt * 50, envBadWindows: envBad, envWindows: idx.length,
+    envMax, envAtMs: envAt * 50, envBadWindows: envBad, envNotchWindows: notch, envWindows: idx.length,
     bandMax, bandAt: bandAt < 0 ? null : CENTERS[bandAt], bandsA: ba, bandsB: bb,
   });
 }
-console.log(`\n最大偏差 ${worst.toFixed(2)}dB（阈值 ${TOL}）`);
+console.log(`\n最大偏差 ${worst.toFixed(2)}dB（阈值 ${TOL}）`
+  + (report.some((r) => r.envNotchWindows)
+    ? '　「凹」= 孤立单窗、两侧对得上，判为抵消凹口不计超差' : ''));
 if (JSON_OUT) writeFileSync(JSON_OUT, JSON.stringify(report, null, 2));
 // 超差就非零退出：可以直接串在跑完配方后面当守门
 if (worst > TOL) process.exitCode = 1;
