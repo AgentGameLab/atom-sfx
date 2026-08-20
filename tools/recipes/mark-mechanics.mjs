@@ -4,6 +4,9 @@
  *
  *   node tools/recipes/mark-mechanics.mjs <输出目录> [2024精选目录]
  *
+ * 底座是 tools/ffkit.mjs —— 采样率归一 / 支路落盘验 NaN / 电平测量驱动都在那儿，
+ * 别在这里手写 filter_complex。⚠️ geodrone 是 96kHz 立体声，必须走 `conv()`。
+ *
  * 四条是**两对**，每对内部靠共享一层建立同一性（composition.md 第三条）：
  *   阵印：`zuyin-place` 盖下去 → `zuyin-echo` 它在响    共享 seal（印章按压）
  *   伏火：`fuhuo-plant` 埋进去 → `fuhuo-blast` 它炸了    共享 paper_burn（药纸）
@@ -38,10 +41,10 @@
  * `zuyin-echo` 会被 zuyinPulsed（万军呐喊，全场阵印一起脉冲）复播 —— 那种
  * 情况接线侧应该**只播一次**而不是每印一次。
  */
-import { spawnSync } from 'node:child_process';
-import { mkdirSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { kit } from '../ffkit.mjs';
 
 const OUT = process.argv[2];
 const PICKS = process.argv[3] ?? 'E:/SoundLibrary/sonniss-gdc-2024-picks';
@@ -50,27 +53,37 @@ const PICKS = process.argv[3] ?? 'E:/SoundLibrary/sonniss-gdc-2024-picks';
 const PICKS_FW = process.argv[4] ?? PICKS;
 if (!OUT) { console.error('用法：node tools/recipes/mark-mechanics.mjs <输出目录> [2024精选目录]'); process.exit(1); }
 mkdirSync(OUT, { recursive: true });
-const TMP = join(tmpdir(), 'mark-mech-work');
-mkdirSync(TMP, { recursive: true });
 
-const ff = (args) => {
-  const r = spawnSync('ffmpeg', ['-v', 'error', '-y', ...args], { maxBuffer: 1 << 26 });
-  if (r.status !== 0) throw new Error(r.stderr.toString().trim().split('\n').pop());
-};
-const enc = ['-ar', '48000', '-ac', '1', '-c:a', 'libvorbis', '-q:a', '5'];
-const A = (f) => `atoms/${f}`;
+const K = kit('mark-mech');
+const ATOMS = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'atoms');
+const A = (f, alias) => K.conv(join(ATOMS, `${f}.wav`), alias);
+
+const sealPress = A('seal__press__f2__01', 'seal_f2');
+const sealRing = A('seal__press__f3__01', 'seal_f3');
+const board = A('chessboard__knock__r_center__f2__01', 'board');
+const cork = A('cork__stab__f1__01', 'cork');
+const paper = A('paper_burn__crackle__01', 'paper');
+const drone = K.conv(join(PICKS, 'geodrone.wav'), 'geodrone');
+const firework = K.conv(join(PICKS_FW, 'fw.wav'), 'fw');
 
 // ── 阵印出现：印章盖下 + 盘面落定 ─────────────────────────
 // seal 的峰在 20ms（按压是瞬态），chessboard 垫低频给"钉在盘上"。
 // 不加混响：放置是发生在这里的事，不是回响。
-ff(['-i', A('seal__press__f2__01.wav'), '-i', A('chessboard__knock__r_center__f2__01.wav'),
-  '-filter_complex',
-  `[0:a]volume=0dB[a];`
-  + `[1:a]lowpass=f=400,volume=-6dB,adelay=15|15[b];`
-  + `[a][b]amix=inputs=2:normalize=0,asetpts=N/SR/TB,atrim=0:0.55,`
-  + `afade=t=out:st=0.4:d=0.15,volume=2.0dB,alimiter=level=disabled:limit=0.94[o]`,
-  '-map', '[o]', ...enc, join(OUT, 'zuyin-place.ogg')]);
-console.log('  zuyin-place.ogg   -24  盖印 + 盘面落定');
+K.ship(K.level(K.mix([
+  K.br(sealPress, 'anull', 'z_seal', { db: 0 }),
+  K.br(board, 'lowpass=f=400,adelay=15', 'z_board', { db: -5.8 }),
+], 'atrim=0:0.55,afade=t=out:st=0.4:d=0.15', 'place'), 'place', { comp: 'anull' }),
+  OUT, 'zuyin-place.ogg', '盖印 + 盘面落定', -16.4);
+// ⚠️ 这条的 -16.4 **不是 LUFS**：只有 0.29s，ebur128 测不出，ship 走的是
+// 「有效 RMS+3」那条退路（对应宽带 RMS -24.9，就是文件头梯度表那个口径）。
+// 迁移前是 -23.9 / 峰 -0.6，新的是 -24.9 / 峰 -1.9 —— **差的这 1dB 全在被削掉
+// 的那一下瞬态上**，包络其余部分逐窗对得上（实测 50ms 窗最大差 1.3dB）。
+// 原因是老版用 limit=0.94（-0.5dBFS 天花板）顶着跑，而产线规范是峰值 ≤ -1.0，
+// ffkit 统一用 limit=0.80（-1.9dBFS）。老的那个峰本来就超规范。
+//
+// 另外这条上 ship 的搜索**几乎失灵**，别照着它的读数调：瞬态被限幅器钉死之后
+// 「有效 RMS」对增益不敏感（实测增益 +4dB 只换来 0.1dB），ship 一路顶到 gMax
+// 才停。判断这条对不对要看**包络**（尾巴的相对高度），不是看 LUFS 读数。
 
 // ── 阵印回响：同一枚印，但这次是它在响 ─────────────────────
 // 倒放的 seal 当前导（气聚拢，方法论第四条），正放的 seal 当成型，
@@ -79,30 +92,24 @@ console.log('  zuyin-place.ogg   -24  盖印 + 盘面落定');
 // ⚠️ 反射必须**短**（45/95ms = 房间感）。初版用 180/420ms，小天听审"不能多下，
 // 只能是一下" —— 那个延迟量听起来是三次敲击不是一次回响。前导也从 -3 降到
 // -8dB：它该是"气"不该被听成独立的一下。
-ff(['-i', A('seal__press__f3__01.wav'), '-i', A('seal__press__f2__01.wav'),
-  '-i', join(PICKS, 'geodrone.wav'), '-filter_complex',
-  `[0:a]areverse,atrim=0:0.30,asetpts=N/SR/TB,afade=t=in:st=0:d=0.28,volume=-8dB[pre];`
-  + `[1:a]adelay=300|300,volume=0dB[main];`
-  + `[2:a]atrim=4.0:4.9,asetpts=N/SR/TB,lowpass=f=260,volume=-4dB,`
-  + `afade=t=in:st=0:d=0.1,afade=t=out:st=0.55:d=0.35,adelay=290|290[sub];`
-  + `[pre][main][sub]amix=inputs=3:normalize=0,asetpts=N/SR/TB,`
-  + `aecho=0.85:0.8:45|95:0.28|0.16,atrim=0:1.15,volume=0.5dB,alimiter=level=disabled:limit=0.94[o]`,
-  '-map', '[o]', ...enc, join(OUT, 'zuyin-echo.ogg')]);
-console.log('  zuyin-echo.ogg    -20  倒放前导 + 同枚印 + 低频脉冲 + 混响');
+K.ship(K.level(K.mix([
+  K.br(sealRing, 'areverse,atrim=0:0.30,asetpts=N/SR/TB,afade=t=in:st=0:d=0.28', 'e_pre', { db: -20.4 }),
+  K.br(sealPress, 'adelay=300', 'e_main', { db: 0 }),
+  K.br(drone, 'atrim=4.0:4.9,asetpts=N/SR/TB,lowpass=f=260,'
+    + 'afade=t=in:st=0:d=0.1,afade=t=out:st=0.55:d=0.35,adelay=290', 'e_sub', { db: 3.0 }),
+], 'aecho=0.85:0.8:45|95:0.28|0.16,atrim=0:1.15', 'echo'), 'echo', { comp: 'anull' }),
+  OUT, 'zuyin-echo.ogg', '倒放前导 + 同枚印 + 低频脉冲 + 混响', -20.7);
 
 // ── 伏火埋设：戳进去 + 药纸 ────────────────────────────────
 // cork stab 是"埋"的动作（锥形物戳软木，本来就是为刺入录的）。
 // paper_burn 取**未燃的纸声**段落当药纸质感 —— 跟 fuhuo-blast 共享这一层。
 // 最轻的一条：埋雷是隐秘动作，响了反而暴露。
-ff(['-i', A('cork__stab__f1__01.wav'), '-i', A('paper_burn__crackle__01.wav'),
-  '-filter_complex',
-  `[0:a]volume=0dB[a];`
-  + `[1:a]atrim=0.05:0.45,asetpts=N/SR/TB,highpass=f=1200,volume=-11dB,`
-  + `afade=t=out:st=0.25:d=0.15,adelay=60|60[b];`
-  + `[a][b]amix=inputs=2:normalize=0,asetpts=N/SR/TB,atrim=0:0.5,`
-  + `afade=t=out:st=0.38:d=0.12,volume=8.4dB,alimiter=level=disabled:limit=0.94[o]`,
-  '-map', '[o]', ...enc, join(OUT, 'fuhuo-plant.ogg')]);
-console.log('  fuhuo-plant.ogg   -28  戳入 + 药纸（最轻，隐秘动作）');
+K.ship(K.level(K.mix([
+  K.br(cork, 'anull', 'f_stab', { db: 0 }),
+  K.br(paper, 'atrim=0.05:0.45,asetpts=N/SR/TB,highpass=f=1200,'
+    + 'afade=t=out:st=0.25:d=0.15,adelay=60', 'f_fuse', { db: -7.4 }),
+], 'atrim=0:0.5,afade=t=out:st=0.38:d=0.12', 'plant'), 'plant', { comp: 'anull' }),
+  OUT, 'fuhuo-plant.ogg', '戳入 + 药纸（最轻，隐秘动作）', -26.9);
 
 // ── 伏火爆炸：真烟花 + 连续低频 rumble 延尾 ────────────────
 // 声源是真烟花录音（小天听审选的）：**伏火和烟花都是黑火药**，材质同源。
@@ -122,19 +129,19 @@ console.log('  fuhuo-plant.ogg   -28  戳入 + 药纸（最轻，隐秘动作）
 //
 // 烟花远距离录的低频被距离吃掉（<150Hz 只有 -37.8），bass +7dB 补回来。
 // paper_burn 那层是跟 fuhuo-plant 共享的药纸质感。
-ff(['-i', join(PICKS_FW, 'fw.wav'), '-i', join(PICKS, 'geodrone.wav'),
-  '-i', A('paper_burn__crackle__01.wav'), '-filter_complex',
-  `[0:a]atrim=8.95:9.90,asetpts=N/SR/TB,bass=g=7:f=110,volume=8dB[boom];`
-  + `[1:a]atrim=2.0:3.45,asetpts=N/SR/TB,lowpass=f=200,volume=-9dB,`
-  + `afade=t=in:st=0:d=0.02,afade=t=out:st=0.08:d=1.15,adelay=50|50[rumble];`
-  + `[2:a]atrim=0.6:1.1,asetpts=N/SR/TB,highpass=f=1500,volume=-12dB,`
-  + `afade=t=out:st=0.3:d=0.2,adelay=40|40[fire];`
-  + `[boom][rumble][fire]amix=inputs=3:normalize=0,asetpts=N/SR/TB,`
-  + `aecho=0.9:0.9:25|55:0.20|0.10,atrim=0:1.5,afade=t=out:st=1.15:d=0.35,`
-  + `acompressor=threshold=-24dB:ratio=4:attack=1:release=90,volume=10.5dB,`
-  + `alimiter=level=disabled:limit=0.9[o]`,
-  '-map', '[o]', ...enc, join(OUT, 'fuhuo-blast.ogg')]);
-console.log('  fuhuo-blast.ogg   -20  真烟花 + 连续 rumble 延尾 1.5s（一声）');
+K.ship(K.level(K.mix([
+  K.br(firework, 'atrim=8.95:9.90,asetpts=N/SR/TB,bass=g=7:f=110', 'b_boom', { db: 0 }),
+  K.br(drone, 'atrim=2.0:3.45,asetpts=N/SR/TB,lowpass=f=200,'
+    + 'afade=t=in:st=0:d=0.02,afade=t=out:st=0.08:d=1.15,adelay=50', 'b_rumble', { db: -8.1 }),
+  K.br(paper, 'atrim=0.6:1.1,asetpts=N/SR/TB,highpass=f=1500,'
+    + 'afade=t=out:st=0.3:d=0.2,adelay=40', 'b_fire', { db: -20.8 }),
+], 'aecho=0.9:0.9:25|55:0.20|0.10,atrim=0:1.5,afade=t=out:st=1.15:d=0.35', 'blast'), 'blast',
+  // 老配方这条压缩器写的是 threshold=-24dB，但它在**混完的原始电平**上工作
+  // （那条链混完峰值顶到 0dBFS，还削掉了 15 个样本）。ffkit 的 level() 先把
+  // 峰值对齐到 FEED_PEAK=-6，同一个 -24 就等于压得狠得多。阈值跟着降 6.3dB
+  // 才是同一个压缩量 —— 照搬 -24 的实测后果：0.7s 之后整条尾巴低 3-4dB，
+  // 「隆隆」被压没了。**迁移时凡是配方自带压缩器的都要做这个换算。**
+  { comp: 'acompressor=threshold=-30.3dB:ratio=4:attack=1:release=90' }),
+  OUT, 'fuhuo-blast.ogg', '真烟花 + 连续 rumble 延尾 1.5s（一声）', -21.2);
 
-rmSync(TMP, { recursive: true, force: true });
 console.log('\n四条 = 两对，每对共享一层：阵印共享 seal / 伏火共享 paper_burn');
