@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 配方：棋门遁甲点兵线七件
+ * 配方：棋门遁甲点兵线六件（原七条，挥刀反击改为继承 attack-slash）
  *
  *   node tools/recipes/dianbing.mjs <输出目录> [2024精选] [沙精选]
  *
@@ -119,17 +119,22 @@ K.ship(K.level(K.mix([
 ], 'atrim=0:0.62,afade=t=out:st=0.50:d=0.12', 'pillar'), 'pillar'),
   OUT, 'dianbing-pillar.ogg', '印格光柱（swell 到 285ms · 衬底档）', -19);
 
-// ═══ 6 扎枪反击 ════════════════════════════════════════════════
-// 需求明写「单发干脆不带回响（高频事件）」→ 整条零 aecho、零 reverb。
-K.ship(K.level(K.mix([
-  K.br(sharp, `areverse,atempo=1.35,highpass=f=600,afade=t=in:st=0:d=0.06`, 's_thrust', { db: -3 }),
-  // 杆身：突刺时杆在抖，短促一点点就够，多了变成拨弦
-  K.br(rod, `atrim=0:0.16,asetpts=N/SR/TB,highpass=f=900,${pitch(4)},`
-    + `afade=t=out:st=0.07:d=0.08,adelay=175`, 's_shaft', { db: -13 }),
-  K.br(axeFlesh, `atrim=2.45:2.72,asetpts=N/SR/TB,adelay=200`, 's_flesh', { db: 0 }),
-  K.br(cork, `atrim=0:0.22,asetpts=N/SR/TB,adelay=205`, 's_stab', { db: -6 }),
-], 'atrim=0:0.48,afade=t=out:st=0.37:d=0.11', 'spear'), 'spear'),
-  OUT, 'dianbing-spear.ogg', '扎枪反击（零回响）');
+// ═══ 6 挥刀反击 —— 不做，继承 attack-slash ═══════════════════
+// 原需求（mem 10228）写的是「扎枪反击」，我照着做了一条 dianbing-spear。
+// **兵器语义是错的**：沙兵持中国战刀不是枪（0818 形象锚），代码里 REWORK-0820
+// 已经把机制词全链改成「挥刀反击」（config.ts「④刀非枪」/ events.ts
+// sandSoldierCounter / friendly-summons.ts「一记横斩劈向」），渲染层也早就是
+// playA2Slash 的横斩弧。mem 10237 修正过这条，我用的是被 supersede 的旧单。
+//
+// 小天 0820 进一步拍板：**连专属素材都不做，自动反击直接继承 attack-slash**。
+// 卒帅本来就是 attack-slash（ATTACK_SWING_BY_CLASS），沙兵是卒帅点出来的，
+// 用同一把刀的手感是对的 —— 多做一条只会让同一个职业有两种刀声。
+//
+// 接线：renderer3d.ts 的 sandSoldierCounter 里那句占位
+//   audio.sfx("piece-impact-light")  →  audio.sfx("attack-slash")
+// 命中层不用管：反击走 combat.dealDamage(summon, ...) 带 source，
+// resolvedCause 落在 'attack'，supplementalImpactSfx 已经按真实 tier 出
+// piece-impact-*。占位那句反而是**重复的命中音**，而且写死 light 不看档位。
 
 // ═══ 7 令行推进 ════════════════════════════════════════════════
 // 整排感 = 6 份脚步错开 8-34ms 并各自微调音高（见文件头）。
@@ -185,4 +190,4 @@ K.ship(K.level(K.mix([
 ], '', 'card'), 'card', { squash: 2 }),
   OUT, 'dianbing-card-return.ogg', '卡回堆（提示档，不抢戏）', -18);
 
-console.log('\n七条写到 ' + OUT);
+console.log('\n六条写到 ' + OUT + '（第 6 条挥刀反击不做，继承 attack-slash）');
