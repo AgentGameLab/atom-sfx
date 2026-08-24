@@ -55,6 +55,34 @@ fff      -41.0    -33.0    -42.8    -56.5   -15.5
 
 所以这条轴该按**伤害档位**映射，而且换档时不要去调增益：`heavy` 一开始用 `mf` 觉得弱，正确的修法是换 `f` 档而不是给 `mf` 加 dB——加增益会把力度轴压平（见 composition.md 第九条）。
 
+## sonniss-gdc-2026 —— GDC Game Audio Bundle
+
+**素材不在本仓**（7.4GB）。完整索引在 [sonniss-gdc-2026-index.md](sonniss-gdc-2026-index.md)，347 个文件名可以直接 grep。
+
+| 在哪 | 路径 |
+|---|---|
+| 本地解压版 | `E:/SoundLibrary/sonniss-gdc-2026/` |
+| NAS 原始 zip | `sound-library/sonniss-gdc-2026/`（5 个分卷 + INDEX.md） |
+| 官方 | https://gdc.sonniss.com/ |
+
+许可证：royalty-free 可商用、无需付费或署名。**禁 raw 再分发**（只能作为成品游戏的一部分）、**禁 AI/ML 训练**。
+
+形态：**每个厂商 3-4 个代表作的样品集**，不是完整库（347 文件 / 122 厂商）。都是单个音效不是合集，规格很高（96kHz / 192kHz，部分立体声），拿来用要降到 48k 单声道。
+
+跟本项目缺口对得上的（按文件名，未逐个试听）：
+
+| 缺口 | 命中 |
+|---|---|
+| 敌人起手叫声 | `SoundBits - Vox Bestiae - Source Elements`（人形/虫类/幽灵/水生的 exhale 与 tremble attack）· `Epic Stock Media - Humanoid Creatures Vol 4`（兽人蓄力攻击、海兽长嚎）· `ANMLRept_Large Herbivore Roar`（大型草食恐龙，可当奔彘） |
+| 木质战斗 | `344 Audio - Medieval Weapons Vol 2` 的 `WEAPBlnt_Spear And Stick Impact, Wooden` · `WOODImpt_Wooden Hit, Dark, Heavy Hit` |
+| 金属 / 铁翎 | `The Noisery - Moaning Metal`（金属弓拉尖啸、低频刮擦）· `344 Audio - Antique Small Metals` |
+| 举盾 / 格挡 | `WEAPArmr_Metal Shield Spin On Floor, Buckler` |
+| 火法卡 | `Ivo Vicic - Campfire/Bonfire FX` · `FIREBurn_Loop Elements Fire Crackling` · `FIREWhsh_Whoosh Fire Deep Growl Monster` |
+| 借东风 | `WINDDsgn_Wind, Rush, Whoosh, Long x5` · `344 Audio - Extreme Winds Vol 1` |
+| 大招重音 | `Cinematic Sound Design - Colossal Impacts` / `Ultra Transitions & Impacts` |
+
+⚠️ 生物音都是**血肉生物**的。本作敌人是木/金属造物，直接用会串味 —— 正确用法是拿它当**声源层**，叠我们自录的木质/金属材质层（`atoms/wood_block`、`blade_wood`、`metal_screech`），合成"木头做的东西在叫"。
+
 ## 采样库通用注意
 
 - **velocity layers 就是现成的力度轴**，跟自录的 `f1/f2/f3` 是同一个东西。这跟生成模型有本质区别（后者每次生成都是不同的东西，见 composition.md 第八条）
