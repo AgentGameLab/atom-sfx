@@ -11,6 +11,24 @@
 
 戏剧层为什么可以带房间：它不在场景的物理空间里，在叙事空间里——跟电影配乐不需要匹配画面混响是一回事。物理层那套"必须干、只截瞬态"的要求对它不适用。
 
+## 找新素材去哪 —— 按顺序找，找到就停
+
+不是所有音效都进这个仓，但每次都得判**这一条要什么等级的许可证**：
+
+|  | 进 git（这个仓 / `library/`） | 只嵌进成品（放 `E:/SoundLibrary/`） |
+|---|---|---|
+| 谁能看到源文件 | 任何 fork / clone 的人 | 只有小天本机 + NAS |
+| 许可证门槛 | **必须 CC0**（否则等于再分发别人的素材） | 只要"可商用"就行 |
+
+按这个门槛，找新素材的顺序：
+
+1. **Pixabay**（pixabay.com/sound-effects）—— 自定义许可证但**实操等于 CC0**：可商用、可修改、**无需署名**、无需注册。**没有再分发限制，可以进 git**（本库 `library/` 目前没有 Pixabay 素材，但语义上允许）。品类偏 UI / 环境音 / 简单 foley，专业录音师上传较少
+2. **Freesound.org 勾 CC0 filter** —— 品类最全，field recorder 上传的高质量原始素材一堆。**需要免费账号**才能下载。CC0 只占少数，好东西经常卡在 CC BY 上
+3. **Freesound.org CC BY 4.0** —— 可商用可修改，**必须署名**（作者名 + 标题 + 许可证名和链接 + 原素材链接）。用它就**从下载那一刻同步写进 `library/THIRD-PARTY-NOTICES.md`**，别攒到发布前补，那时候多半找不到出处
+4. **Sonniss GDC 系列**（`E:/SoundLibrary/`）—— 最深最专业。禁 raw 再分发所以**不进 git**，成品里嵌无问题。见下面 §sonniss-gdc-2026
+
+**下载时的许可证锁定当时的条款**，站方后来改条款只影响新下载。所以下时截图 / 存 URL / 记许可证名，比事后追溯稳。
+
 ## vcsl/ —— Versilian Community Sample Library
 
 CC0-1.0（公有领域）。原文：*"you can do whatever you want with these sounds (even make commercial software), no royalties, no credit, no special terms."* 商用无需署名，是许可证上最干净的一档。
