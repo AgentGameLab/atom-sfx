@@ -1,0 +1,113 @@
+{
+  "input": "D:\\Music\\视频配音\\音效录制-木制摩擦.wav",
+  "source": "wood_tile",
+  "note": "木制摩擦。小天 0904 录，给之后换成木制的卡牌当 card 声。8 次自由手势无口报无 marker，全进 v1 一个池。按时序：01 起手软的滑（attack 57ms）· 02 轻点（-30）· 03 重点（-18，最响）· 04 点（-22）· 05 重点（-19）· 06 点后带一小段拖尾上扬 · 07 纯滑、峰在尾部（attack 37ms+）· 08 最轻的点（-34）。全部高频主导（>6k 最强），是接触摩擦不是敲击。",
+  "generatedAt": "2026-09-04T03:54:13.623Z",
+  "thresholdDb": -42.715071257484276,
+  "rows": [
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 1,
+      "name": "wood_tile__slide__v1__01.wav",
+      "startMs": 753,
+      "endMs": 983,
+      "attackMs": 59,
+      "durMs": 230,
+      "peakDb": -25.32
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 2,
+      "name": "wood_tile__slide__v1__02.wav",
+      "startMs": 1744,
+      "endMs": 2217,
+      "attackMs": 4,
+      "durMs": 473,
+      "peakDb": -29.99
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 3,
+      "name": "wood_tile__slide__v1__03.wav",
+      "startMs": 2911,
+      "endMs": 3162,
+      "attackMs": 4,
+      "durMs": 251,
+      "peakDb": -17.95
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 4,
+      "name": "wood_tile__slide__v1__04.wav",
+      "startMs": 4180,
+      "endMs": 4452,
+      "attackMs": 4,
+      "durMs": 272,
+      "peakDb": -22.13
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 5,
+      "name": "wood_tile__slide__v1__05.wav",
+      "startMs": 5462,
+      "endMs": 5672,
+      "attackMs": 4,
+      "durMs": 210,
+      "peakDb": -19.43
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 6,
+      "name": "wood_tile__slide__v1__06.wav",
+      "startMs": 6694,
+      "endMs": 6927,
+      "attackMs": 4,
+      "durMs": 233,
+      "peakDb": -23.71
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 7,
+      "name": "wood_tile__slide__v1__07.wav",
+      "startMs": 8089,
+      "endMs": 8277,
+      "attackMs": 45,
+      "durMs": 188,
+      "peakDb": -24.49
+    },
+    {
+      "group": 1,
+      "label": "组1",
+      "tier": 1,
+      "tierLabel": null,
+      "variantInTier": 8,
+      "name": "wood_tile__slide__v1__08.wav",
+      "startMs": 9172,
+      "endMs": 9402,
+      "attackMs": 4,
+      "durMs": 230,
+      "peakDb": -33.58
+    }
+  ]
+}
