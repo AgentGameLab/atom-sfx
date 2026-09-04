@@ -12,7 +12,7 @@
  * ── 为什么换 ──────────────────────────────────────────────────
  * 卡牌美术要换成木制，现役 card-draw / play / shuffle / upgrade 是 Suno 批
  * （整 2.00s、实际有声 200-400ms、其余静音填充），纸感。0904 小天录了一条
- * 「木制摩擦」（atoms/wood_tile__slide__v1__01-08）专门给这个用。
+ * 「木制摩擦」（atoms/chopstick__rub__v1__01-08）专门给这个用。
  *
  * ── 8 个 take 其实是三种手势，按事件分配 ────────────────────
  *   点   03 05 04 08   -24/-25 起手 + 平 body 180ms      → 放下（play）
@@ -34,14 +34,14 @@
  * 关系，要小天听审确认。**
  *
  * ── play 的落定不靠木片摩擦，靠木块对敲 ────────────────────
- * wood_tile 的点是「木片碰木面」，薄；卡牌落到棋盘上要有点分量。叠一记
+ * chopstick 的点是「木片碰木面」，薄；卡牌落到棋盘上要有点分量。叠一记
  * wood_block（两块小木料对敲，小天录来模拟棋子碰撞的）在 t=0 当落定的
- * 芯，wood_tile 的 body 跟在后面当木片质感。两个瞬态同帧才能融成一个事件
+ * 芯，chopstick 的 body 跟在后面当木片质感。两个瞬态同帧才能融成一个事件
  * —— 跟钹必须跟木头 hit 对齐是一回事。
  *
  * ── shuffle = 两簇木块错开 8-34ms + 散落的滑 ───────────────
  * 没有「一叠木牌哗啦」的实录，用整排感手法：多份 wood_block 错开 8-34ms
- * 听成一簇（超过 60ms 就数得出几下）。两簇 + 中间散几条 wood_tile 滑 +
+ * 听成一簇（超过 60ms 就数得出几下）。两簇 + 中间散几条 chopstick 滑 +
  * chessboard wood_slide 铺个木面底 = 700ms 的洗牌过程。
  *
  * ── upgrade：盖印 + 筝，戏剧层可以带音高 ────────────────────
@@ -93,7 +93,7 @@ const semi = (n) => (48000 * Math.pow(2, n / 12)).toFixed(2);
 const SLOW = 'acompressor=threshold=-24dB:ratio=2.5:attack=20:release=120';
 
 // ── 源 ────────────────────────────────────────────────────────
-const tile = Object.fromEntries([1, 3, 4, 5, 6, 7, 8].map((i) => [i, A(`wood_tile__slide__v1__0${i}`, `tile${i}`)]));
+const tile = Object.fromEntries([1, 3, 4, 5, 6, 7, 8].map((i) => [i, A(`chopstick__rub__v1__0${i}`, `tile${i}`)]));
 const blk = (f, i) => A(`wood_block__strike__f${f}__0${i}`, `blk${f}${i}`);
 const slideBoard = (f, i) => A(`chessboard__wood_slide__f${f}__0${i}`, `board${f}${i}`);
 const seal = A('seal__press__f3__01', 'seal');
@@ -125,7 +125,7 @@ playSpec.forEach(([bf, bi, ti], n) => {
   K.ship(K.level(K.mix([
     // 落定的芯：木块对敲，t=0
     K.br(blk(bf, bi), 'atrim=0:0.16,asetpts=N/SR/TB,afade=t=out:st=0.08:d=0.08', `p_core${n}`, { db: 0 }),
-    // 木片质感：wood_tile 的点 + body，跟芯同帧起，两个瞬态融成一下。
+    // 木片质感：chopstick 的点 + body，跟芯同帧起，两个瞬态融成一下。
     // -9：body 只当质感，得让落定的点在峰值包络上高出它 ~8dB 才读得出
     // 「放下」；-4 的时候只高 4dB，点被 body 糊住。
     K.br(tile[ti], 'atrim=0:0.30,asetpts=N/SR/TB,afade=t=out:st=0.18:d=0.12', `p_tile${n}`, { db: -9, dense: true }),

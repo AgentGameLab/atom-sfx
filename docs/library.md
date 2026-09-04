@@ -29,8 +29,8 @@
 | `metal_board` | piece_drop | f1 · f2 · f3 | 9 | 棋子落金属板。伤门铁用。三档力度，余韵 343-490ms 明显长于石板 |
 | `wood_block` | strike | f1 · f2 · f3 | 9 | 两块小木料对敲。小天点名：模拟棋子之间碰撞。轻/中/重三档 |
 | `breath_whoosh` | mouth | w_heavy · w_light · w_sharp | 8 | 口吹模仿破空声。三版：重物挥动 / 轻快滑过 / 锋利如划纸 |
+| `chopstick` | rub | v1 | 8 | 木筷子互相摩擦（小天 0904 录，给之后换成木制的卡牌当 card 声；物件是木筷子，0904 追认——原按声音猜成 wood_tile）。8 次自由手势无口报无 marker， |
 | `plastic_bag` | hand_rub | — | 8 | 手轻搓塑料袋，像篝火噼啪声。经典的火焰拟音替代 |
-| `wood_tile` | slide | v1 | 8 | 木制摩擦。小天 0904 录，给之后换成木制的卡牌当 card 声。8 次自由手势无口报无 marker，全进 v1 一个池。按时序：01 起手软的滑（attack 57ms）·  |
 | `seal` | press | f1 · f2 · f3 | 7 | 印章落下按压。软木平底按纸，两档力度（marker 之前那下是试按） |
 | `nail_clipper` | snap_close | size_large · size_small | 6 | 指甲刀合盖，金属碰撞+机械结构。大/小两个，不分力度 |
 | `magnet_lid` | close | — | 5 | 塑料磁吸盖吸合的关闭声。不分力度，多录几遍 |
