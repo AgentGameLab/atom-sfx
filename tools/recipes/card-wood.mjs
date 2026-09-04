@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /**
- * 配方：木制卡牌四件（draw / play / shuffle / upgrade）—— 第一版
+ * 配方：木制卡牌五件（draw / play / shuffle / upgrade / remove）
  *
- *   node tools/recipes/card-wood.mjs <输出目录>
+ *   node tools/recipes/card-wood.mjs <输出目录> [木折断精选目录]
  *
- * 底座 tools/ffkit.mjs。全部源在仓内（atoms/ 自录 + library/vcsl CC0），
- * 没有 Sonniss 依赖 —— 这批可以整仓复现。
+ * 底座 tools/ffkit.mjs。前四件全部源在仓内（atoms/ 自录 + library/vcsl CC0），
+ * 整仓可复现；**remove 用了 Sonniss 的木折断素材**（不入库，禁 raw 再分发，
+ * 见 E:/SoundLibrary/sonniss-gdc-wood-snap-picks/SOURCE.md）—— 库里没有木头
+ * 断裂的原子，wood_block 是对敲、blade_wood 是刮，都不是「断」。
  *
  * ── 为什么换 ──────────────────────────────────────────────────
  * 卡牌美术要换成木制，现役 card-draw / play / shuffle / upgrade 是 Suno 批
@@ -47,9 +49,21 @@
  * 就是盖一枚印）当物理层，叠两声筝 D4 → A4（上行纯五度）当戏剧层。调性照
  * drama-layer.mjs：D 大调五声，跟 BGM 的 D/G 两个调都合。文件名 C#3 实测是 D4。
  *
+ * ── remove：木牌被删 = 折断，不是撕 ─────────────────────────
+ * 现役 card-remove 是 cardboard__tear（纸板撕），换木牌就不对了。木头的
+ * 「毁」是**折断**：拽一下 → 纤维先裂后断（两段式 crack）→ 碎屑噼啪 →
+ * 碎块落地。五个变体换五种折断芯，碎屑轮换，落地那记一律很轻 —— 它只是
+ * 交代「掉了」，不是第二个事件。-18 LUFS：主动毁牌，比 play 响、比 upgrade 轻
+ * （原定 -17，两个薄芯变体物理上够不到，全家族让 1dB 换池内一致）。
+ *
+ * 折断素材的挑法：**看 attack 不看名字**。名字带 break/crack 的一半是
+ * 「压碎」（pepper_crack / fence_destr attack 500-700ms，是过程不是瞬态），
+ * 真折断 attack < 70ms。crack_short 尤其好：10ms 一记、100ms 再一记，
+ * 正是木纤维先裂后断的形。
+ *
  * ── 变体数对齐 manifest ─────────────────────────────────────
- * draw ×6 / play ×6 / shuffle ×2 / upgrade ×1，跟现役键位一样，替换不改
- * manifest 条目数。
+ * draw ×6 / play ×6 / shuffle ×2 / upgrade ×1 / remove ×5，跟现役键位一样，
+ * 替换不改 manifest 条目数。
  */
 import { mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -57,13 +71,15 @@ import { fileURLToPath } from 'node:url';
 import { kit } from '../ffkit.mjs';
 
 const OUT = process.argv[2];
-if (!OUT) { console.error('用法：node tools/recipes/card-wood.mjs <输出目录>'); process.exit(1); }
+const SN = process.argv[3] ?? 'E:/SoundLibrary/sonniss-gdc-wood-snap-picks';
+if (!OUT) { console.error('用法：node tools/recipes/card-wood.mjs <输出目录> [木折断精选]'); process.exit(1); }
 mkdirSync(OUT, { recursive: true });
 
 const K = kit('card-wood');
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const A = (f, alias) => K.conv(join(ROOT, 'atoms', `${f}.wav`), alias);
 const L = (f, alias) => K.conv(join(ROOT, 'library', 'vcsl', f), alias);
+const W = (f, alias) => K.conv(join(SN, `${f}.wav`), alias);   // Sonniss 木折断精选，96k 混采样率，必须 conv
 const semi = (n) => (48000 * Math.pow(2, n / 12)).toFixed(2);
 // 有硬瞬态（木块对敲 / 印章）的三族用慢 attack 的总线压缩：attack 20ms 让
 // 4ms 的点整个过去再夹，保住瞬态 crest。draw 是滑没有硬瞬态，用默认就行。
@@ -156,4 +172,55 @@ K.ship(K.level(K.mix([
   K.br(zhengA, `asetrate=${semi(1)},aresample=48000,atrim=0:0.7,asetpts=N/SR/TB,afade=t=out:st=0.45:d=0.25,adelay=200`, 'u_za', { db: -4 }),
 ], 'atrim=0:0.95,afade=t=out:st=0.80:d=0.15', 'upgrade'), 'upgrade', { comp: SLOW }), OUT, 'card-upgrade.ogg', 'upgrade ← seal + blk + 筝 D4→A4', -15);
 
-console.log('\n十五条写到 ' + OUT + '（draw×6 / play×6 / shuffle×2 / upgrade×1）');
+// ═══ card-remove ×5：拽 → 折断 → 碎屑 → 落地 ═══════════════════
+const crackShort = W('crack_short', 'crack_short');
+const snapIm = W('snap_imotion', 'snap_im');
+const celery = W('celery_crunch', 'celery');
+const pileSmash = W('pile_smash', 'pile_smash');
+const rummage = W('branches_rummage', 'rummage');
+const debrisWood = W('debris_wood', 'debris_wood');
+const plank = W('plank_drop', 'plank');
+// 五种折断芯：[源, atrim 段, 标签]。段落是按事件切分表挑的（attack 全 < 70ms）
+// 五个芯的峰值/body 比要接近 —— 随机池里的变体 LUFS 得落在 ±1dB 内，
+// 首版 snap_imotion e4 太弱（差目标 5.4dB）撑不起芯，换成 debris_wood。
+// 第 4 列 = 这个芯薄不薄。snap_imotion e3 和 celery 是纯瞬态 + 细纤维尾，body
+// 太薄，随机池里比别的变体轻 2-3dB。试过给芯上 dense —— **更差**（-19.5→-20.2）：
+// 短瞬态没有可抬的尾，压完再按有效 RMS 归一反而把峰压低了。正确的补法是
+// **再叠一记第二次裂**（木牌折断本来就不止一声）—— 用 crack_short 的第二段
+// 裂（90-220ms 那记）垫在底下，是加身体不是加增益。
+const cores = [
+  [crackShort, 'atrim=0:0.25', 'crack_short 两段式', false],
+  [snapIm, 'atrim=0.57:0.74', 'snap_imotion e3（最亮）', true],
+  // celery e1 芯物理上到不了 -18（-21，叠第二次裂也不动：182ms 稀疏纤维噼啪，
+  // 峰值天花板由它自己的瞬态定死）。换 crack_short 降 2 个半音当「大一号的牌」
+  // —— 池内一致性优先于素材多样性，这是个低频事件。celery 留在 SOURCE.md 里备用。
+  [crackShort, `atrim=0:0.25,asetrate=${semi(-2)},aresample=48000`, 'crack_short -2 半音', false],
+  [debrisWood, 'atrim=0.02:0.26', 'debris_wood（撞+碎）', false],
+  [pileSmash, 'atrim=0:0.28', 'pile_smash（重一档）', false],
+];
+// 碎屑轮换：干枝噼啪 e2-e4
+const debris = [
+  [rummage, 'atrim=1.76:1.88'], [rummage, 'atrim=1.97:2.12'], [rummage, 'atrim=2.23:2.37'],
+  [rummage, 'atrim=1.76:1.88'], [rummage, 'atrim=1.97:2.12'],
+];
+cores.forEach(([src, seg, label, denseCore], n) => {
+  const file = n === 0 ? 'card-remove.ogg' : `card-remove-${n + 1}.ogg`;
+  const [dsrc, dseg] = debris[n];
+  K.ship(K.level(K.mix([
+    // 拽：从牌堆/手里扯出来那一下，很短，只是交代「有人对它动手了」
+    K.br(tile[7], 'atrim=0:0.12,asetpts=N/SR/TB,highpass=f=400,afade=t=out:st=0.06:d=0.06', `x_pull${n}`, { db: -8, dense: true }),
+    // 折断芯：60ms 起
+    K.br(src, `${seg},asetpts=N/SR/TB,afade=t=out:st=0.14:d=0.10,adelay=60`, `x_core${n}`, { db: 0 }),
+    // 薄芯补第二次裂：crack_short 90-220ms 那记，晚 40ms 垫在主裂后面
+    ...(denseCore ? [K.br(crackShort, 'atrim=0.09:0.22,asetpts=N/SR/TB,afade=t=out:st=0.08:d=0.05,adelay=100', `x_core2_${n}`, { db: -5 })] : []),
+    // 碎屑噼啪：跟在断后 60ms，尾巴拖到 ~340 盖住落地前那段
+    K.br(dsrc, `${dseg},asetpts=N/SR/TB,highpass=f=800,afade=t=out:st=0.10:d=0.12,adelay=120`, `x_deb${n}`, { db: denseCore ? -3 : -6, dense: true }),
+    // 碎块落地：交代「掉了」，**不是第二个事件**。首版 -13 出来跟折断只差 3dB、
+    // 300ms 处独占成一记「咚」，前面还空 30ms —— 压到 -20、掐掉 <150 的肥
+    // 低频、提前到 235 让它藏进碎屑尾里。
+    K.br(plank, 'atrim=0:0.18,asetpts=N/SR/TB,highpass=f=150,lowpass=f=900,afade=t=out:st=0.06:d=0.12,adelay=235', `x_land${n}`, { db: -20 }),
+  ], 'atrim=0:0.50,afade=t=out:st=0.42:d=0.08', `remove${n}`), `remove${n}`, { comp: SLOW }),
+    OUT, file, `remove ← ${label}`, -18);
+});
+
+console.log('\n二十条写到 ' + OUT + '（draw×6 / play×6 / shuffle×2 / upgrade×1 / remove×5）');
