@@ -69,25 +69,30 @@ const name = (key, n) => (n === 0 ? `${key}.ogg` : `${key}-${n + 1}.ogg`);
   ], 'atrim=0:0.08', `hover${n}`), `hover${n}`, { comp: SLOW }), OUT, name('ui-hover', n), `hover ← blk f1-${i} 起音`, -30);
 });
 
-// ═══ ui-click ×2：木牌压案 = 软压 + 一记木 ═════════════════════
-// seal__press 是「压下去不弹起」；wood_block f1 同帧给木的重量。压比敲多 20ms
-// 的身体，正是「按下去」和「敲一下」的区别。
-[[1, 1, 1, 1], [2, 2, 1, 2]].forEach(([sf, si, bf, bi], n) => {
+// ═══ ui-click ×2：木牌压案 = 真木牌压木桌（0906 录到了）+ 一记木 ═══
+// 首版用 seal__press（软木平底按纸）当「压」的替身。小天 0906 录了「牌压桌」
+// （wood_tag__press f1–f3，压的手势起音 5–20ms、身体 350–850ms），替身换真芯。
+// ⚠ 桌面有一根 2.07kHz 的模态（三档九条全在，ring 300–600ms），是桌子不是牌，
+// 用 bandreject 掐掉，不然每次点击都带一声「嗡」。wood_block f1 −8 只给起音一点
+// 定义，压的身体全交给木牌。
+const tag = (f, i) => A(`wood_tag__press__f${f}__0${i}`, `tag${f}${i}`);
+const NOTCH = 'bandreject=f=2070:width_type=q:w=6';
+[[1, 1, 1], [1, 2, 2]].forEach(([tf, ti, bi], n) => {
   K.ship(K.level(K.mix([
-    K.br(seal(sf, si), 'atrim=0:0.16,asetpts=N/SR/TB,lowpass=f=3500,afade=t=out:st=0.09:d=0.07', `c_press${n}`, { db: 0 }),
-    K.br(blk(bf, bi), 'atrim=0:0.10,asetpts=N/SR/TB,afade=t=out:st=0.05:d=0.05', `c_wood${n}`, { db: -5 }),
-  ], 'atrim=0:0.17,afade=t=out:st=0.14:d=0.03', `click${n}`), `click${n}`, { comp: SLOW }), OUT, name('ui-click', n), `click ← seal f${sf}-${si} + blk f${bf}-${bi}`, -25);
+    K.br(tag(tf, ti), `atrim=0:0.18,asetpts=N/SR/TB,${NOTCH},lowpass=f=4000,afade=t=out:st=0.10:d=0.08`, `c_press${n}`, { db: 0 }),
+    K.br(blk(1, bi), 'atrim=0:0.08,asetpts=N/SR/TB,afade=t=out:st=0.04:d=0.04', `c_wood${n}`, { db: -8 }),
+  ], 'atrim=0:0.19,afade=t=out:st=0.15:d=0.04', `click${n}`), `click${n}`, { comp: SLOW }), OUT, name('ui-click', n), `click ← tag f${tf}-${ti} + blk f1-${bi}`, -25);
 });
 
 // ═══ ui-confirm ×2：令牌按下，比 click 重一档 ════════════════════
-// 结束回合令牌是甲档（ui-object-spec §2.7），案面要跟着受一记：chessboard
-// r_center 低通 2k 只留盘身，不留敲击的亮。
-[[3, 1, 'center', 2, 1, 2, 1], [3, 2, 'center', 2, 2, 2, 2]].forEach(([sf, si, r, kf, ki, bf, bi], n) => {
+// 结束回合令牌是甲档（ui-object-spec §2.7）：木牌 f2 压下去，案面跟着受一记
+// （chessboard r_center 低通 2k 只留盘身）。
+[[2, 1, 1, 1], [2, 2, 2, 2]].forEach(([tf, ti, ki, bi], n) => {
   K.ship(K.level(K.mix([
-    K.br(seal(sf, si), 'atrim=0:0.20,asetpts=N/SR/TB,lowpass=f=3000,afade=t=out:st=0.12:d=0.08', `f_press${n}`, { db: 0 }),
-    K.br(knock(r, kf, ki), 'atrim=0:0.18,asetpts=N/SR/TB,lowpass=f=2000,afade=t=out:st=0.10:d=0.08', `f_board${n}`, { db: -4 }),
-    K.br(blk(bf, bi), 'atrim=0:0.10,asetpts=N/SR/TB,afade=t=out:st=0.05:d=0.05', `f_wood${n}`, { db: -7 }),
-  ], 'atrim=0:0.22,afade=t=out:st=0.18:d=0.04', `confirm${n}`), `confirm${n}`, { comp: SLOW }), OUT, name('ui-confirm', n), `confirm ← seal f3-${si} + knock ${r} f${kf} + blk f2`, -23);
+    K.br(tag(tf, ti), `atrim=0:0.26,asetpts=N/SR/TB,${NOTCH},lowpass=f=3500,afade=t=out:st=0.16:d=0.10`, `f_press${n}`, { db: 0 }),
+    K.br(knock('center', 2, ki), 'atrim=0:0.18,asetpts=N/SR/TB,lowpass=f=2000,afade=t=out:st=0.10:d=0.08', `f_board${n}`, { db: -6 }),
+    K.br(blk(2, bi), 'atrim=0:0.08,asetpts=N/SR/TB,afade=t=out:st=0.04:d=0.04', `f_wood${n}`, { db: -9 }),
+  ], 'atrim=0:0.27,afade=t=out:st=0.22:d=0.05', `confirm${n}`), `confirm${n}`, { comp: SLOW }), OUT, name('ui-confirm', n), `confirm ← tag f2-${ti} + knock center f2 + blk f2`, -23);
 });
 
 // ═══ ui-toggle ×2：木栓拨动 = 一记极短的木 + 木片刮一下 ═════════
@@ -97,6 +102,15 @@ const name = (key, n) => (n === 0 ? `${key}.ogg` : `${key}-${n + 1}.ogg`);
     K.br(tile(ti), 'atrim=0:0.07,asetpts=N/SR/TB,highpass=f=1000,afade=t=out:st=0.03:d=0.04,adelay=8', `t_tile${n}`, { db: -7, dense: true }),
   ], 'atrim=0:0.10', `toggle${n}`), `toggle${n}`, { comp: SLOW }), OUT, name('ui-toggle', n), `toggle ← blk f1-${bi} + tile ${ti}`, -26);
 });
+
+// A/B（0906 竹节录到后）：toggle 用快刮一下竹节当「竹栓」——比木块亮、空，
+// 跟以后的状态签 / 意图签是同一根竹。听审用，不是正式变体。
+// （手法是刮不是敲，小天 0906 追认：「刮过那个竹节的感觉」）
+const bamboo = (i) => A(`bamboo_node__scrape__v1__${String(i).padStart(2, '0')}`, `bamboo${i}`);
+K.ship(K.level(K.mix([
+  K.br(bamboo(3), 'atrim=0:0.09,asetpts=N/SR/TB,afade=t=out:st=0.05:d=0.04', 't_bamboo', { db: 0 }),
+  K.br(tile(3), 'atrim=0:0.07,asetpts=N/SR/TB,highpass=f=1000,afade=t=out:st=0.03:d=0.04,adelay=8', 't_tile_b', { db: -9, dense: true }),
+], 'atrim=0:0.11', 'toggle_b'), 'toggle_b', { comp: SLOW }), OUT, 'ui-toggle-bamboo.ogg', 'toggle ← bamboo 03 + tile 3（听审用）', -26);
 
 // ═══ ui-open ×2：翻开册子 = 纸 + 册子搁案一记 ═══════════════════
 // 纸在前、木在后：先翻开，再放到案上。木那一记 -10 只当「放稳了」。

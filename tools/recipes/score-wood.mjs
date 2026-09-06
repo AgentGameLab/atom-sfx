@@ -21,7 +21,8 @@
  *                   「令牌落案」读出来是同一件事
  *   score-unlock  升级奖励弹层打开
  *                 → 翻开册子（event-open 同族，短一档）+ 木楔一记「解开了」
- *   score-line-1..5 / subtotal / mult  不动（现役是宽带短噪声，形态对）
+ *   score-subtotal / score-mult  小计＝一枚筹落碗，乘数＝几枚一起（0906 录到「木投碗」后补）
+ *   score-line-1..5  不动（现役是宽带短噪声，形态对）
  *
  * ── 响度（结算件档 −14~−18，见 composition 十）──
  *   fill −22（床）· tick −20（床上的重音）· card −17（代码再按 index 衰减）·
@@ -86,14 +87,17 @@ const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed
 });
 
 // ═══ score-card ×3：签名卡拍上木牌——card-play 同族，重一档 ═══════
-// 首版第一条用 blk f3-1 + tile 3 差目标 1.3dB（那两个 take 都是纯尖峰）；换 f3-3 + tile 8
-[[3, 3, 8, 1], [3, 2, 5, 2], [2, 3, 4, 3]].forEach(([bf, bi, ti, si], n) => {
+// 0906 录到「牌压桌」后：案面那一记换成真木牌 f2 压桌（替掉 chessboard knock 替身），
+// 木块只给起音定义。桌面 2.07k 模态用 bandreject 掐掉（见 ui-wood.mjs）。
+const tag = (f, i) => A(`wood_tag__press__f${f}__0${i}`, `tag${f}${i}`);
+const NOTCH = 'bandreject=f=2070:width_type=q:w=6';
+[[3, 3, 8, 1, 1], [3, 2, 5, 2, 2], [2, 3, 4, 3, 3]].forEach(([bf, bi, ti, si, gi], n) => {
   K.ship(K.level(K.mix([
-    K.br(blk(bf, bi), 'atrim=0:0.16,asetpts=N/SR/TB,afade=t=out:st=0.08:d=0.08', `sc_core${n}`, { db: 0 }),
+    K.br(blk(bf, bi), 'atrim=0:0.12,asetpts=N/SR/TB,afade=t=out:st=0.06:d=0.06', `sc_core${n}`, { db: -4 }),
     // 木片 body -6（card-play 是 -9）：结算件要够到 -17，身体层得比手牌厚
     K.br(tile(ti), 'atrim=0:0.30,asetpts=N/SR/TB,afade=t=out:st=0.18:d=0.12', `sc_tile${n}`, { db: -6, dense: true }),
-    // 结算件比手牌重：案面也受一记，尾巴留长一点
-    K.br(knock('center', 2, (n % 3) + 1), 'atrim=0:0.22,asetpts=N/SR/TB,lowpass=f=1800,afade=t=out:st=0.12:d=0.10', `sc_desk${n}`, { db: -3 }),
+    // 结算件比手牌重：符拍在木牌上，木牌压桌
+    K.br(tag(2, gi), `atrim=0:0.26,asetpts=N/SR/TB,${NOTCH},lowpass=f=3000,afade=t=out:st=0.16:d=0.10`, `sc_desk${n}`, { db: 0 }),
     K.br(slideBoard(2, si), 'atrim=0.15:0.36,asetpts=N/SR/TB,highpass=f=500,afade=t=in:st=0:d=0.03,afade=t=out:st=0.10:d=0.10,adelay=60', `sc_skid${n}`, { db: -12, dense: true }),
   ], 'atrim=0:0.36,afade=t=out:st=0.30:d=0.06', `scard${n}`), `scard${n}`, { comp: SLOW }), OUT, name('score-card', n), `card ← blk f${bf}-${bi} + tile ${ti} + 案`, -17);
 });
@@ -104,11 +108,39 @@ const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed
     // 首版三层全是瞬态，crest 太大：削满 8dB 还差 1.4–3.7dB，三条变体散 2.3dB。
     // 按 ship 的提示抬身体层：案那一记拉到 0 且尾巴放长，坐实层 -14 → -8。
     K.br(seal(sf, si), 'atrim=0:0.34,asetpts=N/SR/TB,afade=t=out:st=0.22:d=0.12', `st_seal${n}`, { db: 0 }),
+    // 0906 录到「牌压桌」后试过把 wood_tag f3 加进来当「令牌落案」：当主体掉到
+    // −21～−23，高通 150 降成 −4 质感层还是 −18.5～−20（差 2.4–4.1dB）。原因：压的能量
+    // 大头在 250Hz 以下，LUFS 的 K 加权不认低频——它只吃峰值余量不涨响度，而且跟
+    // 印章那一下同帧叠，峰更尖。**不加**，保持听审过的三层：印 + 案身 + 木块 + 坐实。
+    // 木牌压桌只用在 ui-click / ui-confirm / score-card（那三处它是主体，且目标低）。
     K.br(knock('center', 2, ki), 'atrim=0:0.30,asetpts=N/SR/TB,lowpass=f=2200,afade=t=out:st=0.18:d=0.12', `st_desk${n}`, { db: 0 }),
     K.br(blk(bf, bi), 'atrim=0:0.14,asetpts=N/SR/TB,afade=t=out:st=0.07:d=0.07', `st_wood${n}`, { db: -6 }),
-    // 压住之后木牌在案上坐实：这层是身体，不是点缀
     K.br(slideBoard(1, (n % 3) + 1), 'atrim=0.10:0.36,asetpts=N/SR/TB,lowpass=f=1500,afade=t=in:st=0:d=0.02,afade=t=out:st=0.14:d=0.12,adelay=90', `st_settle${n}`, { db: -8, dense: true }),
   ], 'atrim=0:0.50,afade=t=out:st=0.40:d=0.10', `stotal${n}`), `stotal${n}`, { comp: SLOW }), OUT, name('score-total', n), `total ← seal f3-${si} + 案 + blk f3`, -16);
+});
+
+// ═══ score-subtotal ×3 / score-mult ×3：筹落碗（0906 录到「木投碗」）═══
+// 小计＝一枚筹投进碗；乘数＝几枚一起。九条 take 里短的（≤150ms：04/07/09）是
+// 一枚，长的（≥260ms：01/02/05）是几枚在碗里滚。陶碗有一根 2.3k 的短模态
+// （ring 100–150），陶允许 ≤250。−17：在 total（−16）之下、行（噪声 tick）之上。
+const bowl = (i) => A(`clay_bowl__chip_toss__v1__${String(i).padStart(2, '0')}`, `bowl${i}`);
+// 首版只有碗 + 木块：一枚筹是「咔」一下加碗的短鸣，crest 大得三条差 1.6–4.9dB
+// 且互相散 3dB。碗放在案上，案也受一记（knock edge f1 低通）——身体从案来，
+// 碗 dense 把滚动压匀。subtotal −18 在 card（−17）之下，mult −17。
+[[9, 1, 1], [4, 2, 2], [7, 3, 3]].forEach(([bi, wi, ki], n) => {
+  K.ship(K.level(K.mix([
+    K.br(bowl(bi), 'atrim=0:0.24,asetpts=N/SR/TB,afade=t=out:st=0.14:d=0.10', `sub_bowl${n}`, { db: 0, dense: true }),
+    K.br(knock('edge', 1, ki), 'atrim=0:0.20,asetpts=N/SR/TB,lowpass=f=1500,afade=t=out:st=0.10:d=0.10', `sub_desk${n}`, { db: -5 }),
+    K.br(blk(1, wi), 'atrim=0:0.06,asetpts=N/SR/TB,afade=t=out:st=0.03:d=0.03', `sub_wood${n}`, { db: -10 }),
+  ], 'atrim=0:0.26,afade=t=out:st=0.20:d=0.06', `subtotal${n}`), `subtotal${n}`, { comp: SLOW }), OUT, name('score-subtotal', n), `subtotal ← bowl ${bi} 一枚 + 案`, -18);
+});
+// bowl 02 那条差 2.3dB（几枚里最尖的一条），换 06
+[[1, 2, 1], [6, 3, 2], [5, 1, 3]].forEach(([bi, wi, ki], n) => {
+  K.ship(K.level(K.mix([
+    K.br(bowl(bi), 'atrim=0:0.40,asetpts=N/SR/TB,afade=t=out:st=0.26:d=0.14', `mul_bowl${n}`, { db: 0, dense: true }),
+    K.br(knock('edge', 1, ki), 'atrim=0:0.22,asetpts=N/SR/TB,lowpass=f=1500,afade=t=out:st=0.12:d=0.10', `mul_desk${n}`, { db: -5 }),
+    K.br(blk(1, wi), 'atrim=0:0.06,asetpts=N/SR/TB,afade=t=out:st=0.03:d=0.03', `mul_wood${n}`, { db: -10 }),
+  ], 'atrim=0:0.42,afade=t=out:st=0.34:d=0.08', `mult${n}`), `mult${n}`, { comp: SLOW }), OUT, name('score-mult', n), `mult ← bowl ${bi} 几枚 + 案`, -17);
 });
 
 // ═══ score-unlock ×3：翻开册子 + 木楔一记「解开了」 ═══════════════

@@ -29,6 +29,11 @@
 
 ## 2. 录制清单（给小天，按工单顺序）
 
+> **0906 晚已录三件**（`D:/Music/音效录制/`，切进 `atoms/`，各 `map-*.json` 与 `split-report-*.json` 同目录）：
+> #1 厚木牌压案 → `wood_tag__press__f1–f3` 各 3（marker 分档，峰 −18/−11/−8 单调；⚠ 桌面有一根 2.07kHz 模态三档九条全在，配方里 `bandreject=f=2070` 掐掉）→ 已换进 `ui-click` / `ui-confirm` / `score-card` 的芯；**`score-total` 试过两版都不加**（压的能量在 250Hz 以下，K 加权不认，只吃峰值余量，见 score-wood.mjs 注）。
+> #5 木筹投陶碗 → `clay_bowl__chip_toss__v1` ×9（短的 04/07/09 是一枚，长的 01/02/05/06 是几枚在碗里滚；陶模态 2.3k ring 100–150，合法）→ 新做 `score-subtotal`（一枚）/ `score-mult`（几枚）。
+> 竹节 → `bamboo_node__scrape__v1` ×12（小天追认「刮过那个竹节的感觉」：多数是快刮 90–170ms，07/08 是慢刮）→ 先出 `ui-toggle-bamboo` A/B，正式归属等竹签/竹简件有动作时再定；慢刮那两条以后给「卷简」用正合适。
+
 录法照 `recording-guide.md`：干、近、截瞬态、每件三档力度各 ≥5 次、档间打 marker；文件名按 `schema.md` 采集侧命名，用途不进名字。**每件录完先跑 `material-scan`，ring 超 150 的当场换物件**——比如陶碗要挑哑的，瓷碗一敲就是 400ms 的峰。
 
 | # | 物件·手法 | 轴 | 服务的键 | 提示 |
@@ -62,7 +67,7 @@
 
 ## 4. 工单（按游戏仓 §6 优先级；层结构是起点，听审后改）
 
-> **0906 状态**：本节工单当日全部落地（`ui-wood` / `paper-run` / `desk-objects` / `terrain-heal` / `score-wood` 五个配方，游戏仓四批提交），听审改动都记在各配方头注里——尤其 artifact-get 五条 A/B 选真刮奏 ×1.6、energy 从「珠拨一颗」改「一口气」、scroll-open 两条都取 scroll 03、score-total 目标 −15→−16。下面的层结构是**做之前**的起点，以配方为准。未做：`heal` 瓷盘点换木片（P3）、符加皮纸层（P3）；录制清单 #1 厚木牌压案录到后换 click/confirm 的芯。
+> **0906 状态**：本节工单当日全部落地（`ui-wood` / `paper-run` / `desk-objects` / `terrain-heal` / `score-wood` 五个配方，游戏仓四批提交），听审改动都记在各配方头注里——尤其 artifact-get 五条 A/B 选真刮奏 ×1.6、energy 从「珠拨一颗」改「一口气」、scroll-open 两条都取 scroll 03、score-total 目标 −15→−16。下面的层结构是**做之前**的起点，以配方为准。`heal` 小天定案不动（瓷盘点 + 水）。未做：符加皮纸层（P3）。录制清单里值最高的三条：#1 厚木牌压案（换 click/confirm/score-card/score-total 的印章替身）、#4 木珠串（换 score-fill/tick/energy 的木块替身）、#5 木筹投陶碗（score-mult/subtotal 现役还是 Suno）。
 
 时间线单位 ms；层写法 `原子 @起点 db`。「缺」= 录制清单编号，录到之前用括号里的临时替身。
 
