@@ -1,7 +1,7 @@
 # 素材库索引
 
 > 自动生成：`node tools/gen-library.mjs`。改了 `atoms/` 就重跑。
-> 共 **400** 个原子 / **34** 个 source。
+> 共 **430** 个原子 / **37** 个 source。
 
 文件名即元数据：`<source>__<technique>__<轴>...__<variant>.wav`。
 轴的取值来自录制时的受控变量（力度 / 落点 / 速度 / 材质状态…），命名规范见 [schema.md](schema.md)。
@@ -18,8 +18,10 @@
 | `belly` | hand | hit_bright f_1 · hit_bright f_2 · hit_bright f_3 …共 6 | 18 | 人体腹部手击。前批亮（有接触噪声，中高频足），后批闷（近乎纯低频，小力度时高频比低频低 14dB）。两批力度轴各自成立，均复现『越重高频涨得越快』。后批 = 干净的低频 body  |
 | `cardboard` | pull_out / tear | spd1 · spd2 · spd3 | 14 | 硬纸板抽出，速度慢/中/快。软木塞拔出实测无声（摩擦系数低+弹性回弹），改纸板纤维撕扯。渐进摩擦包络：attack 122-429ms |
 | `cleaver` | tap | — | 13 | 菜刀金属敲击。无力度分档，13 个变体。清脆干净，attack 4-15ms |
+| `bamboo_node` | scrape | v1 | 12 | 刮过竹节（小天 0906 录，「刮过那个竹节的感觉」——给竹签 / 竹简类当竹的声音；手法 0906 追认为刮，原按声音猜成 tap）。12 次自由手势无口报无 marker，全进 |
 | `blade_wood` | scrape | spd1 · spd2 · spd3 | 9 | 锋利金属刮过木头，慢/中/快三档速度 |
 | `ceramic_plate` | tap | f1 · f2 · f3 | 9 | 敲瓷盘，三档力度。用作 S5 磬钉帧——比 glass_cup 短、比金属干 |
+| `clay_bowl` | chip_toss | v1 | 9 | 木片投进陶碗（小天 0906 录，对应纸木声核录制清单 #5「木筹投粗陶碗」，给结算 score-mult / score-subtotal 与敌方计数碗用）。9 次自由手势无口报 |
 | `cleaver_chopstick` | chop | f1 · f2 · f3 | 9 | 菜刀砍筷子，三档力度。金属刃切断木杆——矛/箭折断、木质敌人被斩 |
 | `cork` | stab | f1 · f2 · f3 | 9 | 锥形物戳软木，三档力度。用作矛/箭的刺入层（入木瞬态） |
 | `glass_slab` | knuckle | f1 · f2 · f3 | 9 | 指节敲一大块玻璃，沉闷。轻/中/重三档 |
@@ -28,6 +30,7 @@
 | `metal_board2` | piece_drop | r_center · r_edge · r_mid | 9 | 棋子落金属板 第二份。落点轴：中间/边上一点/最边缘。低频三档几乎不变(1.5dB)，变的全是中高频=板振动模态。小天定为死门青铜 |
 | `metal_board` | piece_drop | f1 · f2 · f3 | 9 | 棋子落金属板。伤门铁用。三档力度，余韵 343-490ms 明显长于石板 |
 | `wood_block` | strike | f1 · f2 · f3 | 9 | 两块小木料对敲。小天点名：模拟棋子之间碰撞。轻/中/重三档 |
+| `wood_tag` | press | f1 · f2 · f3 | 9 | 厚木牌压木桌（小天 0906 录，对应纸木声核录制清单 #1「厚木牌压案」，给 ui-click / ui-confirm / score-card / score-total 换 |
 | `breath_whoosh` | mouth | w_heavy · w_light · w_sharp | 8 | 口吹模仿破空声。三版：重物挥动 / 轻快滑过 / 锋利如划纸 |
 | `chopstick` | rub | v1 | 8 | 木筷子互相摩擦（小天 0904 录，给之后换成木制的卡牌当 card 声；物件是木筷子，0904 追认——原按声音猜成 wood_tile）。8 次自由手势无口报无 marker， |
 | `plastic_bag` | hand_rub | — | 8 | 手轻搓塑料袋，像篝火噼啪声。经典的火焰拟音替代 |
