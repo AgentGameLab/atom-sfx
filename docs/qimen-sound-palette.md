@@ -62,6 +62,8 @@
 
 ## 4. 工单（按游戏仓 §6 优先级；层结构是起点，听审后改）
 
+> **0906 状态**：本节工单当日全部落地（`ui-wood` / `paper-run` / `desk-objects` / `terrain-heal` / `score-wood` 五个配方，游戏仓四批提交），听审改动都记在各配方头注里——尤其 artifact-get 五条 A/B 选真刮奏 ×1.6、energy 从「珠拨一颗」改「一口气」、scroll-open 两条都取 scroll 03、score-total 目标 −15→−16。下面的层结构是**做之前**的起点，以配方为准。未做：`heal` 瓷盘点换木片（P3）、符加皮纸层（P3）；录制清单 #1 厚木牌压案录到后换 click/confirm 的芯。
+
 时间线单位 ms；层写法 `原子 @起点 db`。「缺」= 录制清单编号，录到之前用括号里的临时替身。
 
 ### P0-1 `ui-wood.mjs` —— UI 七键（13 文件，−24 LUFS）
