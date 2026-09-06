@@ -137,4 +137,21 @@ K.ship(K.level(K.mix([
   ], 'atrim=0:0.20,afade=t=out:st=0.16:d=0.04', `error${n}`), `error${n}`, { comp: SLOW }), OUT, name('ui-error', n), `error ← blk f2-${i1} + f2-${i2} -2semi + desk`, -18);
 });
 
-console.log('\nUI 七键写到 ' + OUT);
+// ═══ energy ×2：得气 = 吸一口气 ══════════════════════════════════
+// 首版做成「气珠拨一颗」（木块 +3 半音 + 木片 tick，0.05s，−21）——小天 0906
+// 听审「听不出来，energy 不是气么」。对：状态牌上那颗珠是**记录**气，气本身是
+// 人的一口气（声核白名单里的「人」：手、笔、印，加一口气）。
+// 吸气＝口吹的轻 whoosh **倒放**：呼出去倒过来就是吸进来，起音软、收在最响处
+// ＝吸满了截住。落点垫一颗珠 −12：气进了珠里。0.35s，−18。
+// 二版 A/B（小天 0906）：air_slit「缝里吸气」的上行段 0.55s 干净但像气流，
+// 口吹倒放短、糙、听得出是嘴——**选后者**（「快的这个更好」）。
+// 现役 Suno 是 2s 的 74Hz 次低频 drone。sfxOnce 去重，一帧只响一次。
+const breath = (w, i) => A(`breath_whoosh__mouth__w_${w}__0${i}`, `breath_${w}${i}`);
+[[3, 'atrim=0.02:0.34', 2], [1, 'atrim=0.02:0.36', 3]].forEach(([wi, tr, bi], n) => {
+  K.ship(K.level(K.mix([
+    K.br(breath('light', wi), `${tr},asetpts=N/SR/TB,areverse,highpass=f=300,afade=t=in:st=0:d=0.04,afade=t=out:st=0.26:d=0.06`, `en_rev${n}`, { db: 0, dense: true }),
+    K.br(blk(1, bi), `atrim=0:0.06,asetpts=N/SR/TB,${pitch(3)},highpass=f=600,afade=t=out:st=0.03:d=0.03,adelay=300`, `en_bead${n}`, { db: -12 }),
+  ], 'atrim=0:0.38', `energy${n}`), `energy${n}`, { comp: SLOW }), OUT, name('energy', n), `energy ← 口吹 light 0${wi} 倒放 + 珠`, -18);
+});
+
+console.log('\nUI 七键 + energy 写到 ' + OUT);

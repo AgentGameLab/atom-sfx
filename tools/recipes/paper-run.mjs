@@ -68,4 +68,34 @@ spec.forEach((s, n) => {
   ], 'atrim=0:0.80,afade=t=out:st=0.70:d=0.10', `event${n}`), `event${n}`, { comp: SLOW }), OUT, name('event-open', n), `event-open ← 封面 ${n === 2 ? 'scroll' : 'pull'} + 两叶 paper + 搁稳`, -19);
 });
 
-console.log('\nevent-open ×3 写到 ' + OUT);
+// ═══ reward-claim ×2：拿起一张符 = 木底一记 + 纸抽 + 木片滑 ═══════
+// 奖励屏「三张符摊在案上，选中=拿起来」（ui-object-spec §4）。现役是 Suno「silk
+// card」，−30.7 LUFS 比同档轻 8–12dB，几乎听不见。符是薄木裱纸（§3.2 #11）：
+// 拿起时木底离案一记，纸面和木边一起蹭过。0.35s，−19。
+const card = (i) => A(`playing_card__draw__v1__${String(i).padStart(2, '0')}`, `card${i}`);
+const tile = (i) => A(`chopstick__rub__v1__0${i}`, `tile${i}`);
+[[1, 4, 7], [2, 6, 1]].forEach(([bi, ci, ti], n) => {
+  K.ship(K.level(K.mix([
+    K.br(blk(1, bi), 'atrim=0:0.08,asetpts=N/SR/TB,lowpass=f=2500,afade=t=out:st=0.04:d=0.04', `rc_lift${n}`, { db: -4 }),
+    K.br(card(ci), 'atrim=0:0.21,asetpts=N/SR/TB,highpass=f=500,afade=t=out:st=0.13:d=0.08,adelay=20', `rc_paper${n}`, { db: 0, dense: true }),
+    K.br(tile(ti), 'atrim=0:0.26,asetpts=N/SR/TB,highpass=f=300,afade=t=out:st=0.16:d=0.10,adelay=15', `rc_wood${n}`, { db: -5, dense: true }),
+  ], 'atrim=0:0.36,afade=t=out:st=0.30:d=0.06', `reward${n}`), `reward${n}`, { comp: SLOW }), OUT, name('reward-claim', n), `reward-claim ← blk f1-${bi} + card ${ci} + tile ${ti}`, -19);
+});
+
+// ═══ scroll-open ×2：摊开那卷图 = 展纸 + 铺平 + 镇纸压角 ═════════
+// 地图＝案上摊开的旧皮纸图（§3 #1 / §3.2 #22：一角木楔钉进案面，对角石镇纸压住）。
+// 现役 Suno 版零消费者——接线到 modeEntered map。scroll__unroll 01 是小天点名
+// 较好的那段。展完 → 铺平 → 河卵石压角一记（stone_slab f1 低通，石落纸不是石落木）。
+// 听审（小天 0906）：scroll 03 那条胜过 01——03 是一段匀速的长展开（2.17s，−41
+// 平台），01 有两个峰听着像展了两次。两条变体都从 03 取：前段 0.30–1.35 / 后段
+// 0.95–2.00（1.55–1.75 有一处「铺到头」的小起伏，正好落在铺平层前面）。
+const stone = (i) => A(`stone_slab__piece_drop__damp_dry__f1__0${i}`, `stone${i}`);
+[[3, 'atrim=0.30:1.35', 3, 3], [3, 'atrim=0.95:2.00', 1, 1]].forEach(([si, tr, pi, st], n) => {
+  K.ship(K.level(K.mix([
+    K.br(scroll(si), `${tr},asetpts=N/SR/TB,highpass=f=200,afade=t=in:st=0:d=0.03,afade=t=out:st=0.80:d=0.25`, `so_roll${n}`, { db: 0, dense: true }),
+    K.br(paper(pi), 'atrim=0:0.40,asetpts=N/SR/TB,highpass=f=300,afade=t=out:st=0.25:d=0.15,adelay=780', `so_flat${n}`, { db: -4, dense: true }),
+    K.br(stone(st), 'atrim=0.01:0.16,asetpts=N/SR/TB,lowpass=f=1800,afade=t=out:st=0.08:d=0.08,adelay=1010', `so_stone${n}`, { db: -9 }),
+  ], 'atrim=0:1.25,afade=t=out:st=1.12:d=0.13', `scroll${n}`), `scroll${n}`, { comp: SLOW }), OUT, name('scroll-open', n), `scroll-open ← scroll 0${si} + paper 0${pi} + 镇纸`, -20);
+});
+
+console.log('\nevent-open ×3 + reward-claim ×2 + scroll-open ×2 写到 ' + OUT);
