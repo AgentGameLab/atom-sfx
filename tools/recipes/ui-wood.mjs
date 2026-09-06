@@ -60,13 +60,42 @@ const desk = (i) => A(`desk_padded__fingernail__r_center__f1__0${i}`, `desk${i}`
 
 const name = (key, n) => (n === 0 ? `${key}.ogg` : `${key}-${n + 1}.ogg`);
 
-// ═══ ui-hover ×3：木片轻抬，只留起音 ═══════════════════════════
-// 悬停 = 轻微抬起（ui-object-spec §2.2）。50ms 内收干，高通 700 去掉木块的
-// 身体 —— 抬起来的是一片，不是一块。
-[1, 2, 3].forEach((i, n) => {
+// ═══ ui-hover ×3：炭笔划一道 ═══════════════════════════════════
+// 0906 材质 UI 之后，所有按钮的 hover 反馈是一道笔迹（material-controls.css
+// `::after` + `--qm-brush` cinnabar-stroke.svg，`qm-write-mark` 155ms 从左往右写，
+// ease-out 起笔快收笔慢）。小天：「主菜单的 ui 选择做成了笔画一道，音效改成笔划」——
+// 那道笔画是全 UI 通用的，所以换的就是 ui-hover 本身。
+// 首版「木片轻抬」（木块起音 50ms）作废。
+// ⚠ 是**炭笔**不是毛笔（小天 0906：「本来也不应该用毛笔，这种应该是炭笔的声音」）——
+// 美术轴是纸 / 炭笔 / 朱砂，记号是炭条在纸上划的：干、有纤维的沙沙、没有毫的软。
+// 所以纸板纤维的拖擦正对：
+//   纸板纤维抽出（cardboard pull_out）当炭条在纸上的拖擦——主体
+//   缝里吸气（air_slit）低通 5k 当划过带起的一点气——很轻
+//   纸铺平（paper）高通 2k 当纸面的纤维——点缀
+// 包络照 155ms 的写：8ms 起，120ms 起收，200ms 收干。−28（比首版 −30 略在，
+// 笔画比抬木片有存在感；hover 一局几百次，不能再响了）。
+const slit = (i) => A(`air_slit__hiss__0${i}`, `slit${i}`);   // pull / paper 在上面的加载器里已有
+const brushSpec = [
+  { body: [pull(2, 1), 'atrim=0.05:0.27'], air: 'atrim=0.30:0.52', tex: [paper(2), 'atrim=0.00:0.14'] },
+  { body: [pull(2, 3), 'atrim=0.04:0.24'], air: 'atrim=0.45:0.67', tex: [paper(2), 'atrim=0.18:0.32'] },
+  { body: [pull(1, 1), 'atrim=0.20:0.44'], air: 'atrim=0.60:0.82', tex: [paper(3), 'atrim=0.05:0.19'] },
+];
+brushSpec.forEach((s, n) => {
   K.ship(K.level(K.mix([
-    K.br(blk(1, i), 'atrim=0:0.06,asetpts=N/SR/TB,highpass=f=700,afade=t=out:st=0.02:d=0.04', `h${n}`, { db: 0 }),
-  ], 'atrim=0:0.08', `hover${n}`), `hover${n}`, { comp: SLOW }), OUT, name('ui-hover', n), `hover ← blk f1-${i} 起音`, -30);
+    K.br(s.body[0], `${s.body[1]},asetpts=N/SR/TB,highpass=f=700,lowpass=f=6500,afade=t=in:st=0:d=0.008,afade=t=out:st=0.12:d=0.09`, `h_body${n}`, { db: 0, dense: true }),
+    K.br(slit(3), `${s.air},asetpts=N/SR/TB,lowpass=f=5000,afade=t=in:st=0:d=0.01,afade=t=out:st=0.10:d=0.10`, `h_air${n}`, { db: -10, dense: true }),
+    K.br(s.tex[0], `${s.tex[1]},asetpts=N/SR/TB,highpass=f=2000,afade=t=in:st=0:d=0.005,afade=t=out:st=0.08:d=0.06`, `h_tex${n}`, { db: -9, dense: true }),
+  ], 'atrim=0:0.21,afade=t=out:st=0.17:d=0.04', `hover${n}`), `hover${n}`, { comp: SLOW }), OUT, name('ui-hover', n), `hover ← 笔划：pull + slit + paper`, -28);
+});
+// ═══ ui-dot ×2：炭笔落下一顿 ═══════════════════════════════════
+// 文字按钮（.qm-textbtn：主菜单项、标题屏 CTA）的点击——此前无声（audio.ts 点击委托
+// 只认 .btn-qimen/.btn/.choice…）。0906 接线：.qm-textbtn 点击播这条。hover 划一道，
+// 点下去一顿，一笔写完。快抽的前 80ms 当炭条按下去 + 纸铺平那一下低通当压纸。0.10s，−24。
+[[1, 3, 'atrim=0.21:0.31'], [2, 2, 'atrim=0.00:0.10']].forEach(([pi, pp, tr], n) => {
+  K.ship(K.level(K.mix([
+    K.br(pull(3, pi), 'atrim=0.02:0.10,asetpts=N/SR/TB,highpass=f=500,lowpass=f=5000,afade=t=out:st=0.05:d=0.03', `d_body${n}`, { db: 0, dense: true }),
+    K.br(paper(pp), `${tr},asetpts=N/SR/TB,lowpass=f=4000,afade=t=out:st=0.05:d=0.05`, `d_press${n}`, { db: -4 }),
+  ], 'atrim=0:0.13,afade=t=out:st=0.10:d=0.03', `dot${n}`), `dot${n}`, { comp: SLOW }), OUT, name('ui-dot', n), `dot ← pull spd3-${pi} + paper 0${pp}`, -24);
 });
 
 // ═══ ui-click ×2：木牌压案 = 真木牌压木桌（0906 录到了）+ 一记木 ═══
