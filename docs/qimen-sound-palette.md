@@ -85,9 +85,9 @@
 
 缺#8（暂 `plank_drop` 低通 1.5k @0）· `wood_block f2` @6 db −5 · `seal__press f2` @180 db −14（东西放稳了）。**不加任何铜／玉的鸣**——它是被放在案上，不是在醒。
 
-### P1-1 `heal` ×3 · `terrain-heal` ×3（−20 / −21.5）——**先等小天拍**
+### P1-1 `terrain-heal` ×3（−21.5）
 
-木面返生＝木纹变清：`chopstick__rub` 01/07 顺纹上行（`asetrate` 微升 +2 半音跨 0.4s）· 缺#6 极轻纸层 db −16 · 收干 0.55s。terrain 版短 0.1s、少纸层。
+现役是 `grill_rack` spd3 原子直出（0804 版；`heal` 在 0808 被 `heal.mjs` 瓷盘+水替掉了，terrain-heal 没跟上）。木面返生＝木纹变清：`chopstick__rub` 01/07 顺纹滑，第二条 +2 半音晚 90ms 叠上去做「上行」· **与 `heal` 同一条 `water_trickle`**（低通 4k，db −8）——共享层让「地块生成」和「回血」读成同一件事 · `wood_block f1` −12 极轻一记当「那一格变了」· 0.5s 收干。`heal` 本身留 P3（瓷盘点换薄木片，水不动）。
 
 ### P1-2 `score-wood.mjs` —— 结算七键（20 文件，−16）
 
