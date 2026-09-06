@@ -50,12 +50,13 @@ gh api -H "Accept: application/vnd.github.raw" \
 | `cymbal_mf.wav` `cymbal_mp.wav` | `Idiophones/Struck Idiophones/Clash Cymbals 1/` | 重击 |
 | `drum_bass.wav` | `Membranophones/Struck Membranophones/Bass Drum 1/BDrumNew_hit_v5_rr1_Sum.wav` | 举盾落定 |
 | `drum_frame.wav` | `Membranophones/Struck Membranophones/Frame Drum/HDrumL_Hit_v3_rr1_Sum.wav` | 举盾落定（变体二） |
-| `zheng_*.wav` | `Chordophones/Zithers/Dan Tranh/Normal/` | 普通命中 |
+| `zheng_*.wav` | `Chordophones/Zithers/Dan Tranh/Normal/` | 普通命中、卡牌升级 |
+| `zheng_gliss_up_med_ff.wav` | `Chordophones/Zithers/Dan Tranh/Gliss/Gliss_Up_Med_ff_1.wav` | 得法宝（`artifact-get`，×1.6 速）。上行刮奏原速 0.30→1.05s 到峰；同目录还有 Dwn / Slw / Swl × mf / ff 共 12 条 |
 
 ### 没拉但值得知道的
 
 - **Gong 1 的另外四档**（`p` / `mp` / `mf` / `f`）—— 完整力度轴，见下面「锣的力度轴」
-- **Dan Tranh/Gliss** —— 上行/下行刮奏 × 慢/中/涌 × mf/ff，语义现成（上行=增益，下行=debuff）
+- **Dan Tranh/Gliss** —— 上行/下行刮奏 × 慢/中/涌 × mf/ff，语义现成（上行=增益，下行=debuff）。0906 拉了 `Up_Med_ff` 给法宝用；⚠️ `api.github.com` 大文件常 EOF，走 `raw.githubusercontent.com/sgossner/VCSL/master/<路径>` 稳
 - **Dan Tranh/Tremolo** —— 轮指，但那是**持续**的语义，当一击用会觉得开头突兀
 - `Suspended Cymbal 1/cresc_*` —— 1.5/2/4/7.5 秒的渐强，适合蓄力不适合打击
 - `Clash Cymbals 2`、`Gong 2` —— 另一副钹/另一面锣，音色另一套
