@@ -90,6 +90,7 @@ const tile = (i) => A(`chopstick__rub__v1__0${i}`, `tile${i}`);
 // 平台），01 有两个峰听着像展了两次。两条变体都从 03 取：前段 0.30–1.35 / 后段
 // 0.95–2.00（1.55–1.75 有一处「铺到头」的小起伏，正好落在铺平层前面）。
 const stone = (i) => A(`stone_slab__piece_drop__damp_dry__f1__0${i}`, `stone${i}`);
+const knock = (r, f, i) => A(`chessboard__knock__r_${r}__f${f}__0${i}`, `knock_${r}${f}${i}`);
 [[3, 'atrim=0.30:1.35', 3, 3], [3, 'atrim=0.95:2.00', 1, 1]].forEach(([si, tr, pi, st], n) => {
   K.ship(K.level(K.mix([
     K.br(scroll(si), `${tr},asetpts=N/SR/TB,highpass=f=200,afade=t=in:st=0:d=0.03,afade=t=out:st=0.80:d=0.25`, `so_roll${n}`, { db: 0, dense: true }),
@@ -98,4 +99,26 @@ const stone = (i) => A(`stone_slab__piece_drop__damp_dry__f1__0${i}`, `stone${i}
   ], 'atrim=0:1.25,afade=t=out:st=1.12:d=0.13', `scroll${n}`), `scroll${n}`, { comp: SLOW }), OUT, name('scroll-open', n), `scroll-open ← scroll 0${si} + paper 0${pi} + 镇纸`, -20);
 });
 
-console.log('\nevent-open ×3 + reward-claim ×2 + scroll-open ×2 写到 ' + OUT);
+// ═══ map-node ×5：选点 = 你那枚棋子压到图上 ═══════════════════════
+// 地图＝案上摊开的图，当前所在处压着你自己那枚棋子（ui-object-spec §3 #1）。
+// 现役 0813b 批形态对（0.29s 短噪声）但素材出处没记。P2 听审用的 A/B：
+// 木子落在纸上——纸下面是木案：木块芯 + 纸的一下 + 案身低通。0.22s，−22。
+[[1, 1, 1], [1, 2, 2], [2, 1, 3], [1, 3, 1], [2, 2, 2]].forEach(([bf, bi, pi], n) => {
+  K.ship(K.level(K.mix([
+    K.br(blk(bf, bi), 'atrim=0:0.10,asetpts=N/SR/TB,afade=t=out:st=0.05:d=0.05', `mn_core${n}`, { db: 0 }),
+    K.br(paper(pi), 'atrim=0:0.14,asetpts=N/SR/TB,highpass=f=600,afade=t=out:st=0.07:d=0.07', `mn_paper${n}`, { db: -7, dense: true }),
+    K.br(knock('edge', 1, (n % 3) + 1), 'atrim=0:0.16,asetpts=N/SR/TB,lowpass=f=1500,afade=t=out:st=0.08:d=0.08', `mn_desk${n}`, { db: -8 }),
+  ], 'atrim=0:0.22,afade=t=out:st=0.17:d=0.05', `mapnode${n}`), `mapnode${n}`, { comp: SLOW }), OUT, name('map-node', n), `map-node ← blk f${bf}-${bi} + paper 0${pi} + 案`, -22);
+});
+
+// ═══ event-reveal ×3：翻到结果那一页 ═══════════════════════════════
+// 选完选项，结果页显出来（overlay-event 'light'）。翻一页薄纸 + 木片轻轻一下
+// （册子是薄木裱纸的）。0.30s，−21。
+[[2, 'atrim=0:0.28', 3], [3, 'atrim=0:0.28', 5], [1, 'atrim=0.30:0.58', 4]].forEach(([pi, tr, ti], n) => {
+  K.ship(K.level(K.mix([
+    K.br(paper(pi), `${tr},asetpts=N/SR/TB,highpass=f=350,afade=t=out:st=0.18:d=0.10`, `er_paper${n}`, { db: 0, dense: true }),
+    K.br(tile(ti), 'atrim=0:0.12,asetpts=N/SR/TB,highpass=f=500,afade=t=out:st=0.06:d=0.06,adelay=30', `er_tile${n}`, { db: -8, dense: true }),
+  ], 'atrim=0:0.30,afade=t=out:st=0.24:d=0.06', `reveal${n}`), `reveal${n}`, { comp: SLOW }), OUT, name('event-reveal', n), `event-reveal ← paper 0${pi} + tile ${ti}`, -21);
+});
+
+console.log('\nevent-open ×3 + reward-claim ×2 + scroll-open ×2 + map-node ×5 + event-reveal ×3 写到 ' + OUT);
