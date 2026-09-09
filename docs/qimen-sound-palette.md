@@ -44,7 +44,7 @@
 | 4 | **木珠串拨**（算盘或手串；算盘只借声音，canon 已否它当 UI） | 单颗／连拨三档速度 | `score-tick` `score-fill` `energy` `heal-chain` 血／气变动 | 单颗要 ≤ 80ms 干净一颗；连拨要能截出 3–8 颗 |
 | 5 | **木筹投粗陶碗**（木片／木圆片投进哑陶碗） | 一枚／三枚／一把 | `score-mult` `score-subtotal` 敌方计数 | 碗要哑（陶不是瓷）；碗里已有筹和空碗各录一版 |
 | 6 | **厚韧纸抽／翻／展／拍**（手头最接近楮皮纸的：厚而柔韧、未涂布的手工纸；不要复印纸、不要扑克那种涂层纸） | 慢／中／快 | 符纸层 `event-open` `event-reveal` `reward-claim` `map-node` | 皮纸的特征是**软**：不要复印纸那种脆响 |
-| 7 | **炭笔划纸**（不是毛笔——小天 0906：记号是炭笔的声音）：炭条在皮纸上划短道、点一下 | 短划／点／圈 | `ui-hover`（行笔）`ui-dot`（落笔）现役是纸板纤维拼的，录到换芯；`map-node` 圈门 | 声音很小，近距离录；炭条要软的，硬铅笔是另一种声 |
+| 7 | **炭笔划纸**（不是毛笔——小天 0906：记号是炭笔的声音）：炭条在皮纸上划短道、点一下 | 短划／点／圈 | `ui-hover`（行笔）0909 换芯为小天录的**重粗糙摩擦**（`rough_surface__rub`，频心 1.2k，比纸板纤维低两个八度——「更温和、会低一些」）；`ui-dot`（落笔）仍是纸板拼的；`map-node` 圈门 | 声音很小，近距离录；炭条要软的，硬铅笔是另一种声 |
 | 8 | **小木匣／木盖放到木案**（法宝＝案上小件） | f1–f3 | `artifact-get` `treasure-open`（若复活） | 要的是「案受一记＋物件自身短模态」；不要盖子合上的机构声 |
 | 9 | （可选）**钱串落案**（一串铜钱或硬币） | 轻／重 | `shop-open` `shop-buy` | 只在现役 Suno 听审不过时录 |
 | 10 | （若入范围）**空心木**（竹筒／空木盒敲） | f1–f3 | `enemy-summon` 局散最后一格 | 跟 `desk_padded` 声核同力度对录，方便对比「实木 vs 空心」 |
@@ -75,7 +75,7 @@
 
 | 键 | 载体·动作 | 层 | 时长 |
 |---|---|---|---|
-| `ui-hover` ×3 | 木片轻抬 | `wood_block f1` 只取起音 0–25ms，highpass 800，db −6 | 0.08 |
+| `ui-hover` ×3 | 炭笔行笔（v3，0909） | `rough_surface__rub` 窗口 highpass 180 lowpass 4200 @0 · `air_slit` 低通 5k db −12 · `paper__flatten` 高通 2k db −14；−29 | 0.21 |
 | `ui-click` ×2 | 厚木牌压案 | 缺#1（暂 `chessboard knock r_center f1` 低通 2k）@0 · `wood_block f1` @0 db −9 | 0.15 |
 | `ui-confirm` ×1 | 令牌按下（甲档，比 click 重一档） | 缺#1 f2 @0 · `chessboard knock r_center f2` @4 db −6 | 0.20 |
 | `ui-toggle` ×2 | 木栓拨 | `wood_block f1` @0 · `chopstick__rub` 03 截 60ms @15 db −10 | 0.12 |
@@ -139,3 +139,9 @@ node tools/material-scan.mjs <目录或文件...> [--json] [--ring 150]
 **ring 低是必要条件不是充分条件**：两块木头对敲也能有一根 800Hz 的短峰；`card-remove` 150 是木纤维断裂的模态，`gate-open` 500 是吱嘎的准周期摩擦，都合法。数字挡明显错的，结论小天听。
 
 0906 对现役全库跑过一遍，非战斗层超门槛的：`event-open` 2300 · `artifact-get` 3850 · `heal-chain` 5150 · `score-total` 500 · `shop-open` 850 · `energy` 700 · `enemy-summon` 2750；孤儿键 `vajra-guard` 6800 · `jianzhen-on` 3400。全表在游戏仓 §5。
+
+## 7. 入游 30 秒（0909）· 教训
+
+配方 `tools/recipes/entry-30s.mjs`（v1）→ `entry-30s-v2.mjs`（现行）。脚本是小梦 0908 的 xiaqiuqiu.com/d/qimen-entry-audio-rtlln6za。v1 被 A梦 听成「恐怖片」，四层叠出来的：朱砂字幕、灰蓝调色、人声处理（tremolo / 低通 / 吞字 / 狼人吼 + 回声、呼吸缺席）、台词本身。声音这层是执行偏离脚本：脚本明写「六句干、真、不处理」「兽认不出种类不用狼嚎」「声像后半球」「他自己四样声音正中」，v1 一条都没守住。**口头局部要求（「老人加点效果」）撞书面总设计时，先把脚本那条摆出来 flag，再做。**
+
+v2 守回来的：兽 = 公有领域麋鹿 bugle + bellow 两方向共振峰偏移（`library/commons-pd/`）；人声一律 anull（小天缩混已分声线）；风三段不相关 + Haas 阵头（⚠ Eye Of The Storm 是 30s loop，偏移避开 30 的倍数，否则 corr 0.65 假立体声）；兽回声左右拆 700/830ms；人声越走越远（近路→远路交叉淡 + 整体压）；山谷 = 每声道两下离散暗反射过短抽头扩散器（反馈梳被听成「脑海里的声音」；本机 ffmpeg 的 afir 卷积出零，别指望它）；时间轴对实际画面（20.0 手到门环，人声 19.6 前退光）；抓环后兽收、风 −8、门原声留。

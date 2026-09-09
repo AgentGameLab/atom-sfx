@@ -1,7 +1,7 @@
 # 素材库索引
 
 > 自动生成：`node tools/gen-library.mjs`。改了 `atoms/` 就重跑。
-> 共 **430** 个原子 / **37** 个 source。
+> 共 **434** 个原子 / **38** 个 source。
 
 文件名即元数据：`<source>__<technique>__<轴>...__<variant>.wav`。
 轴的取值来自录制时的受控变量（力度 / 落点 / 速度 / 材质状态…），命名规范见 [schema.md](schema.md)。
@@ -39,6 +39,7 @@
 | `magnet_lid` | close | — | 5 | 塑料磁吸盖吸合的关闭声。不分力度，多录几遍 |
 | `metal_screech` | scrape | — | 4 |  |
 | `paper_burn` | crackle | — | 4 |  |
+| `rough_surface` | rub | v1 | 4 | 重粗糙摩擦（小天 0909 17:54 录，「质感应该和朱砂笔划更温和、会低一些」，给菜单 UI hover 那道笔画换芯）。整条 38s 是连续揉擦无口报无 marker，spl |
 | `air_slit` | hiss | — | 3 |  |
 | `air_whoosh` | burst | — | 3 |  |
 | `paper` | flatten | — | 3 | 手掌铺平纸张。小天点名也可用作翻页类。三个变体动作略不同（渐进抹平/拍平/推平） |

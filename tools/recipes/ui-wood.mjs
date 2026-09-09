@@ -60,7 +60,7 @@ const desk = (i) => A(`desk_padded__fingernail__r_center__f1__0${i}`, `desk${i}`
 
 const name = (key, n) => (n === 0 ? `${key}.ogg` : `${key}-${n + 1}.ogg`);
 
-// ═══ ui-hover ×3：炭笔划一道 ═══════════════════════════════════
+// ═══ ui-hover ×3：炭笔划一道（v3：重粗糙摩擦芯）═══════════════════════
 // 0906 材质 UI 之后，所有按钮的 hover 反馈是一道笔迹（material-controls.css
 // `::after` + `--qm-brush` cinnabar-stroke.svg，`qm-write-mark` 155ms 从左往右写，
 // ease-out 起笔快收笔慢）。小天：「主菜单的 ui 选择做成了笔画一道，音效改成笔划」——
@@ -74,18 +74,24 @@ const name = (key, n) => (n === 0 ? `${key}.ogg` : `${key}-${n + 1}.ogg`);
 //   纸铺平（paper）高通 2k 当纸面的纤维——点缀
 // 包络照 155ms 的写：8ms 起，120ms 起收，200ms 收干。−28（比首版 −30 略在，
 // 笔画比抬木片有存在感；hover 一局几百次，不能再响了）。
+// v3（小天 0909 17:54 录「重粗糙摩擦」）：「质感应该和朱砂笔划更温和、会低一些」——纸板纤维那版频心 6.7k，
+// 太亮太脆；新录的连续揉擦频心 1.0–1.2k、250Hz–4k 平，低两个八度。换芯：主体 = rough_surface rub 窗口，
+// 高通 180 去揉擦底下的闷、低通 4200 收顶；气和纸面点缀各再退 2–5dB 只留一点亮边；−29（更温和）。
+// 纸板版留着注释里，要回去把 body 换回 pull 即可。
 const slit = (i) => A(`air_slit__hiss__0${i}`, `slit${i}`);   // pull / paper 在上面的加载器里已有
+const rub = (i) => A(`rough_surface__rub__v1__0${i}`, `rub${i}`);
 const brushSpec = [
-  { body: [pull(2, 1), 'atrim=0.05:0.27'], air: 'atrim=0.30:0.52', tex: [paper(2), 'atrim=0.00:0.14'] },
-  { body: [pull(2, 3), 'atrim=0.04:0.24'], air: 'atrim=0.45:0.67', tex: [paper(2), 'atrim=0.18:0.32'] },
-  { body: [pull(1, 1), 'atrim=0.20:0.44'], air: 'atrim=0.60:0.82', tex: [paper(3), 'atrim=0.05:0.19'] },
+  { body: [rub(1), 'atrim=0.02:0.26'], air: 'atrim=0.30:0.52', tex: [paper(2), 'atrim=0.00:0.14'] },
+  { body: [rub(2), 'atrim=0.05:0.29'], air: 'atrim=0.45:0.67', tex: [paper(2), 'atrim=0.18:0.32'] },
+  { body: [rub(3), 'atrim=0.10:0.34'], air: 'atrim=0.60:0.82', tex: [paper(3), 'atrim=0.05:0.19'] },
+  // 纸板版（v2）：{ body: [pull(2, 1), 'atrim=0.05:0.27'] } / [pull(2, 3), 'atrim=0.04:0.24'] / [pull(1, 1), 'atrim=0.20:0.44']，body 滤波 highpass 700 lowpass 6500，air −10，tex −9，−28
 ];
 brushSpec.forEach((s, n) => {
   K.ship(K.level(K.mix([
-    K.br(s.body[0], `${s.body[1]},asetpts=N/SR/TB,highpass=f=700,lowpass=f=6500,afade=t=in:st=0:d=0.008,afade=t=out:st=0.12:d=0.09`, `h_body${n}`, { db: 0, dense: true }),
-    K.br(slit(3), `${s.air},asetpts=N/SR/TB,lowpass=f=5000,afade=t=in:st=0:d=0.01,afade=t=out:st=0.10:d=0.10`, `h_air${n}`, { db: -10, dense: true }),
-    K.br(s.tex[0], `${s.tex[1]},asetpts=N/SR/TB,highpass=f=2000,afade=t=in:st=0:d=0.005,afade=t=out:st=0.08:d=0.06`, `h_tex${n}`, { db: -9, dense: true }),
-  ], 'atrim=0:0.21,afade=t=out:st=0.17:d=0.04', `hover${n}`), `hover${n}`, { comp: SLOW }), OUT, name('ui-hover', n), `hover ← 笔划：pull + slit + paper`, -28);
+    K.br(s.body[0], `${s.body[1]},asetpts=N/SR/TB,highpass=f=180,lowpass=f=4200,afade=t=in:st=0:d=0.008,afade=t=out:st=0.12:d=0.09`, `h_body${n}`, { db: 0, dense: true }),
+    K.br(slit(3), `${s.air},asetpts=N/SR/TB,lowpass=f=5000,afade=t=in:st=0:d=0.01,afade=t=out:st=0.10:d=0.10`, `h_air${n}`, { db: -12, dense: true }),
+    K.br(s.tex[0], `${s.tex[1]},asetpts=N/SR/TB,highpass=f=2000,afade=t=in:st=0:d=0.005,afade=t=out:st=0.08:d=0.06`, `h_tex${n}`, { db: -14, dense: true }),
+  ], 'atrim=0:0.21,afade=t=out:st=0.17:d=0.04', `hover${n}`), `hover${n}`, { comp: SLOW }), OUT, name('ui-hover', n), `hover ← 笔划 v3：rough rub + slit + paper`, -29);
 });
 // ═══ ui-dot ×2：炭笔落下一顿 ═══════════════════════════════════
 // 文字按钮（.qm-textbtn：主菜单项、标题屏 CTA）的点击——此前无声（audio.ts 点击委托
