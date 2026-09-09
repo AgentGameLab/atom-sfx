@@ -108,3 +108,14 @@ fff      -41.0    -33.0    -42.8    -56.5   -15.5
 - **round robin**（`rr1`/`rr2`）是同力度的不同次演奏，直接当变体池用
 - 多数是 44.1kHz 立体声，本库口径是 48k 单声道，要转。降混前测一下相位损失：`pan=mono|c0=0.5*c0+0.5*c1` 跟原始立体声的 RMS 差应该 < 1dB，差太多说明两声道反相
 - **文件名标的音高不一定准**。实测 Dan Tranh 的 `C#3` 基频是 D4，八度标记整体差 1。拨弦乐器基频弱、二次泛音强，检测时也容易报高八度——要用就实测
+
+## commons-pd/ —— Wikimedia Commons 公有领域
+
+只放**公有领域**（Public domain）的，跟 CC0 同档：商用、修改、再分发都不需要署名。Commons 上的 **CC BY-SA** 素材（大英图书馆那批鹿、麂）**不进这里**——SA 会传染到成品，只嵌成品也不用。下载走 `https://commons.wikimedia.org/wiki/Special:FilePath/<文件名>`，许可证在文件页 `extmetadata.LicenseShortName` 核（0909 实证：页面 HTML 里 grep「CC0」会误中页脚的结构化数据声明，别信那个）。
+
+| 文件 | Commons 页 | 许可证 | 作者 | 用在 |
+|---|---|---|---|---|
+| `American_Elk_Bugling.ogg` | File:American Elk Bugling.ogg | Public domain（美国国家公园管理局） | Jim Pisarowicz, NPS | 入游 30s 兽声「哨」那一半（`entry-30s-v2.mjs`，往下搬 6–9 半音） |
+| `Elkbellow.ogg` | File:Elkbellow.ogg | Public domain | （Commons 未署名） | 入游 30s 兽声「喉」那一半（往下搬 3–6 半音） |
+
+0909 下过但**不用**的：`Red Deer / Sika Deer / Fallow Deer (W1CDR…)`（大英图书馆，CC BY-SA 4.0）、`DM550106 CervusElaphus Slovakia`（CC BY-SA 4.0）、`Muntjac HQ 1` / `Dongshi Taiwan Muntjac`（CC BY-SA 4.0）、`Hirsch roehrt`（CC BY-SA 3.0）、`Moose mate`（PD 但录音是风扇底噪）。留在 `E:/SoundLibrary/commons-cc/deer/` 作参考。
