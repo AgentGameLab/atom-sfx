@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 配方：案上放物 —— artifact-get（treasure-open 若复活也归这里）
+ * 配方：案上放物 —— artifact-get + treasure-open（开匣）
  *
  *   node tools/recipes/desk-objects.mjs <输出目录>
  *
@@ -31,6 +31,24 @@
  *
  * ── 响度 ───────────────────────────────────────────────────
  * 过场件档 −19（现役 −15.1 是 9 秒 chime 拉的）。两条变体换物理层的 take，弦不换。
+ *
+ * ════ treasure-open（开匣）0912 ═══════════════════════════════
+ * 0906 审计把它当零消费者删了（宝箱 hook 从未接）；0911 别人把 hook 接上，顺手
+ * 用 `git checkout` 把**删之前那条 0722 Suno 原件**恢复回来了（md5 逐字节相同）。
+ * 读数 4.52s · atk 420ms · <250Hz 主导 —— 旧美术那套的长闷响又回到线上。
+ *
+ * 画面（`public/art/ui/treasure-0907/chest-open.webp`）：厚木匣，木轴木榫，正面
+ * 一枚朱砂印，**一件金属件都没有**。canon §2「案上放物」那一行本来就管着它。
+ * 所以开匣 = 三段木：
+ *   84ms  前导静音 —— **不是设计，是旧素材的固有静音**（0911 的 CHEST-SFX-0911b
+ *         把 openSfxLeadMs 钉成 84 并写了断言）。新素材原样保留这段静音，
+ *         接线与断言零改动；要去掉得连那条常量和 treasure-reveal-test 一起改，
+ *         那是别人 0911 的合同，不在本次范围。
+ *   0ms   盖子松动：blade_wood 慢刮，低通 2.5k —— 木轴转动的干涩，不是金属铰链
+ *   60ms  掀起来的行程：cardboard 纤维拖擦，低通 1.8k，压到 −10（过程不是事件）
+ *   210ms 盖靠到后板：wood_block f2 一记闷木 —— 这一下是整条唯一的「事件」
+ *   250ms 匣内垫的纸：paper 高通 1.2k，−16，一点窸窣
+ * 0.72s 收干。−19 与 artifact-get 同档（开盖是过场，获得声才是重音）。
  */
 import { mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -71,4 +89,19 @@ const gliss = (n) => K.br(glissFF, 'atrim=0.30:1.45,asetpts=N/SR/TB,atempo=1.6,'
     OUT, file, `artifact ← knock c-f2-${p.ki} + stone f1-${p.si} + 刮奏 ×1.6`, -19);
 });
 
-console.log('\nartifact-get ×2 写到 ' + OUT);
+// ═══ treasure-open ×1：开匣（木轴 → 行程 → 盖靠住 → 匣内纸）═══════
+const LEAD = 78;   // 前导静音：0911 合同 openSfxLeadMs=84 说的是「素材固有静音」实测 83.5ms。
+// adelay 78 + 起音淡入 + ogg 编码器的余量，实测落在 83–84ms（下面每次改都要用
+// silencedetect=noise=-60dB 复量一遍；差一帧以内不影响，差多了开盖帧就对不上）。
+const scrape = (s, i) => A(`blade_wood__scrape__spd${s}__0${i}`, `bw${s}${i}`);
+const pull = (s, i) => A(`cardboard__pull_out__spd${s}__0${i}`, `pull${s}${i}`);
+const paper = (i) => A(`paper__flatten__0${i}`, `paper${i}`);
+K.ship(K.level(K.mix([
+  K.br(scrape(1, 1), `atrim=0:0.20,asetpts=N/SR/TB,lowpass=f=2500,afade=t=in:st=0:d=0.01,afade=t=out:st=0.12:d=0.08,adelay=${LEAD}`, 'tr_hinge', { db: 0, dense: true }),
+  K.br(pull(2, 2), `atrim=0.05:0.32,asetpts=N/SR/TB,lowpass=f=1800,highpass=f=200,afade=t=in:st=0:d=0.02,afade=t=out:st=0.17:d=0.10,adelay=${LEAD + 60}`, 'tr_travel', { db: -10, dense: true }),
+  K.br(blk(2, 1), `atrim=0:0.22,asetpts=N/SR/TB,lowpass=f=3200,afade=t=out:st=0.12:d=0.10,adelay=${LEAD + 210}`, 'tr_stop', { db: -2 }),
+  K.br(paper(2), `atrim=0:0.24,asetpts=N/SR/TB,highpass=f=1200,afade=t=out:st=0.14:d=0.10,adelay=${LEAD + 250}`, 'tr_paper', { db: -16, dense: true }),
+], 'atrim=0:0.72,afade=t=out:st=0.60:d=0.12', 'treasure'), 'treasure', { comp: SLOW }),
+  OUT, 'treasure-open.ogg', '开匣 ← 木轴刮 + 行程 + 盖靠住 + 匣内纸（前导静音 84ms）', -19);
+
+console.log('\nartifact-get ×2 + treasure-open ×1 写到 ' + OUT);
