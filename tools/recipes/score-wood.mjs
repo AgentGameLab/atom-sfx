@@ -119,7 +119,7 @@ const NOTCH = 'bandreject=f=2070:width_type=q:w=6';
   ], 'atrim=0:0.50,afade=t=out:st=0.40:d=0.10', `stotal${n}`), `stotal${n}`, { comp: SLOW }), OUT, name('score-total', n), `total ← seal f3-${si} + 案 + blk f3`, -16);
 });
 
-// ═══ score-subtotal ×3 / score-mult ×3：筹落碗（0906 录到「木投碗」）═══
+// ═══ score-subtotal ×3 / score-mult ×3：筹落碗（0906 录到「木投碗」，投的是木筷子）═══
 // 小计＝一枚筹投进碗；乘数＝几枚一起。九条 take 里短的（≤150ms：04/07/09）是
 // 一枚，长的（≥260ms：01/02/05）是几枚在碗里滚。陶碗有一根 2.3k 的短模态
 // （ring 100–150），陶允许 ≤250。−17：在 total（−16）之下、行（噪声 tick）之上。

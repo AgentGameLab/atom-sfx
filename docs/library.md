@@ -21,7 +21,7 @@
 | `bamboo_node` | scrape | v1 | 12 | 刮过竹节（小天 0906 录，「刮过那个竹节的感觉」——给竹签 / 竹简类当竹的声音；手法 0906 追认为刮，原按声音猜成 tap）。12 次自由手势无口报无 marker，全进 |
 | `blade_wood` | scrape | spd1 · spd2 · spd3 | 9 | 锋利金属刮过木头，慢/中/快三档速度 |
 | `ceramic_plate` | tap | f1 · f2 · f3 | 9 | 敲瓷盘，三档力度。用作 S5 磬钉帧——比 glass_cup 短、比金属干 |
-| `clay_bowl` | chip_toss | v1 | 9 | 木片投进陶碗（小天 0906 录，对应纸木声核录制清单 #5「木筹投粗陶碗」，给结算 score-mult / score-subtotal 与敌方计数碗用）。9 次自由手势无口报 |
+| `clay_bowl` | chip_toss | v1 | 9 | 木筷子投进碗（小天 0906 录；投的一直是筷子，10-21 小天更正，此前误记为木片；对应纸木声核录制清单 #5「木筹投粗陶碗」，给结算 score-mult / score-s |
 | `cleaver_chopstick` | chop | f1 · f2 · f3 | 9 | 菜刀砍筷子，三档力度。金属刃切断木杆——矛/箭折断、木质敌人被斩 |
 | `cork` | stab | f1 · f2 · f3 | 9 | 锥形物戳软木，三档力度。用作矛/箭的刺入层（入木瞬态） |
 | `glass_slab` | knuckle | f1 · f2 · f3 | 9 | 指节敲一大块玻璃，沉闷。轻/中/重三档 |

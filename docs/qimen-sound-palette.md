@@ -31,7 +31,7 @@
 
 > **0906 晚已录三件**（`D:/Music/音效录制/`，切进 `atoms/`，各 `map-*.json` 与 `split-report-*.json` 同目录）：
 > #1 厚木牌压案 → `wood_tag__press__f1–f3` 各 3（marker 分档，峰 −18/−11/−8 单调；⚠ 桌面有一根 2.07kHz 模态三档九条全在，配方里 `bandreject=f=2070` 掐掉）→ 已换进 `ui-click` / `ui-confirm` / `score-card` 的芯；**`score-total` 试过两版都不加**（压的能量在 250Hz 以下，K 加权不认，只吃峰值余量，见 score-wood.mjs 注）。
-> #5 木筹投陶碗 → `clay_bowl__chip_toss__v1` ×9（短的 04/07/09 是一枚，长的 01/02/05/06 是几枚在碗里滚；陶模态 2.3k ring 100–150，合法）→ 新做 `score-subtotal`（一枚）/ `score-mult`（几枚）。
+> #5 木筹投陶碗 → `clay_bowl__chip_toss__v1` ×9（实录投的是木筷子，10-21 更正；短的 04/07/09 是一枚，长的 01/02/05/06 是几枚在碗里滚；陶模态 2.3k ring 100–150，合法）→ 新做 `score-subtotal`（一枚）/ `score-mult`（几枚）。
 > 竹节 → `bamboo_node__scrape__v1` ×12（小天追认「刮过那个竹节的感觉」：多数是快刮 90–170ms，07/08 是慢刮）→ 先出 `ui-toggle-bamboo` A/B，正式归属等竹签/竹简件有动作时再定；慢刮那两条以后给「卷简」用正合适。
 
 录法照 `recording-guide.md`：干、近、截瞬态、每件三档力度各 ≥5 次、档间打 marker；文件名按 `schema.md` 采集侧命名，用途不进名字。**每件录完先跑 `material-scan`，ring 超 150 的当场换物件**——比如陶碗要挑哑的，瓷碗一敲就是 400ms 的峰。
