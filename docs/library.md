@@ -34,7 +34,7 @@
 | `breath_whoosh` | mouth | w_heavy · w_light · w_sharp | 8 | 口吹模仿破空声。三版：重物挥动 / 轻快滑过 / 锋利如划纸 |
 | `chopstick` | rub | v1 | 8 | 木筷子互相摩擦（小天 0904 录，给之后换成木制的卡牌当 card 声；物件是木筷子，0904 追认——原按声音猜成 wood_tile）。8 次自由手势无口报无 marker， |
 | `plastic_bag` | hand_rub | — | 8 | 手轻搓塑料袋，像篝火噼啪声。经典的火焰拟音替代 |
-| `seal` | press | f1 · f2 · f3 | 7 | 印章落下按压。实物是一块木制磨刀板（板上带皮革），拿它当印章往下按（小天 10-21 更正，此前误记为软木平底按纸）。两档力度（marker 之前那下是试按） |
+| `seal` | press | f1 · f2 · f3 | 7 | 印章落下按压。实物是一块荡刀板（木板上带皮革，荡刀用），拿它当印章往下按（小天 10-21 更正，此前误记为软木平底按纸；10-23 口播里叫它荡刀板）。两档力度（marker 之 |
 | `nail_clipper` | snap_close | size_large · size_small | 6 | 指甲刀合盖，金属碰撞+机械结构。大/小两个，不分力度 |
 | `magnet_lid` | close | — | 5 | 塑料磁吸盖吸合的关闭声。不分力度，多录几遍 |
 | `metal_screech` | scrape | — | 4 |  |
